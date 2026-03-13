@@ -3,49 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Web FPS Complete Edition</title>
+    <title>Ultimate Web FPS</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Segoe UI', sans-serif; user-select: none; }
+        :root { --primary: #ffaa00; --bg: #0a0a0c; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); touch-action: none; font-family: 'Consolas', 'Courier New', monospace; user-select: none; }
         #game-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
-        /* UI共通 */
-        .ui { position: absolute; pointer-events: none; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); z-index: 10; }
-        
-        /* タイトル・リザルト画面 */
+        /* 画面レイヤー */
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; color: white; z-index: 10; }
         .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; background: rgba(0,0,0,0.9); pointer-events: auto; }
         
-        /* 方向インジケーター */
-        #compass { top: 2%; left: 50%; transform: translateX(-50%); width: 200px; height: 30px; border-bottom: 2px solid white; display: flex; justify-content: center; overflow: hidden; background: rgba(0,0,0,0.3); }
+        /* HUD要素 */
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 2px solid rgba(0,255,0,0.5); border-radius: 50%; transform: translate(-50%, -50%); }
+        #crosshair::before { content: ''; position: absolute; top: 50%; left: 50%; width: 2px; height: 2px; background: #0f0; transform: translate(-50%, -50%); }
+
+        #hud-top { position: absolute; top: 20px; width: 100%; display: flex; justify-content: center; }
+        #compass { width: 300px; height: 30px; border-bottom: 2px solid white; background: rgba(0,0,0,0.4); text-align: center; font-weight: bold; font-size: 1.2rem; overflow: hidden; white-space: nowrap; }
+
+        #minimap-container { position: absolute; top: 20px; left: 20px; width: 140px; height: 140px; border: 2px solid #555; background: rgba(0,0,0,0.6); border-radius: 8px; pointer-events: auto; }
+        #minimap-player { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: #0f0; border-radius: 50%; transform: translate(-50%, -50%) rotate(0deg); z-index: 5; }
+        #minimap-player::after { content: ''; position: absolute; top: -10px; left: 3px; border-left: 1px solid #0f0; height: 10px; }
+
+        #ammo-hud { position: absolute; bottom: 30px; right: 30px; text-align: right; line-height: 1; }
+        #weapon-name { font-size: 1.5rem; color: var(--primary); }
+        #ammo-main { font-size: 3rem; font-weight: bold; }
+        #ammo-reserve { font-size: 1.5rem; color: #ccc; }
+        #fire-mode-label { font-size: 1rem; color: #aaa; margin-top: 5px; }
+
+        /* 操作ボタン */
+        .btn { pointer-events: auto; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-weight: bold; }
+        .btn:active { background: var(--primary); color: black; }
         
-        /* ミニマップ */
-        #minimap-container { top: 2%; left: 2%; width: 120px; height: 120px; border: 2px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.5); border-radius: 5px; pointer-events: auto; overflow: hidden; }
-        #minimap-player { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background: #0f0; border-radius: 50%; transform: translate(-50%, -50%); z-index: 2; }
-        #minimap-canvas { position: absolute; top: 0; left: 0; }
-
-        /* インベントリ・弾薬 */
-        #ammo-hud { bottom: 5%; right: 5%; font-size: 1.5rem; text-align: right; }
-        #fire-mode { font-size: 0.9rem; color: #ffaa00; }
-
-        /* ボタン */
-        .btn { pointer-events: auto; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.4); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; }
-        .btn:active { background: rgba(255,170,0,0.4); }
-        #btn-shoot { position: absolute; bottom: 15%; right: 15%; width: 100px; height: 100px; border-radius: 50%; background: rgba(255,0,0,0.2); border: 2px solid red; font-size: 1.2rem; }
-        #btn-grenade { position: absolute; bottom: 45%; right: 15%; width: 65px; height: 65px; }
-        #btn-reload { position: absolute; bottom: 35%; right: 5%; width: 60px; height: 60px; }
-        #btn-mode { position: absolute; bottom: 15%; right: 5%; width: 50px; height: 50px; }
-        #btn-swap { position: absolute; top: 2%; right: 2%; width: 100px; height: 40px; }
-        #btn-console-toggle { position: absolute; top: 2%; left: 40%; width: 80px; height: 30px; }
-
-        /* コンソール */
-        #console-ui { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 80%; background: rgba(0,0,0,0.9); border: 1px solid #0f0; padding: 10px; display: none; z-index: 50; pointer-events: auto; }
-        #console-log { height: 80px; overflow-y: auto; color: #0f0; font-size: 0.8rem; }
-        #console-input { width: 80%; background: #222; color: #0f0; border: 1px solid #0f0; }
+        #btn-shoot { position: absolute; bottom: 120px; right: 120px; width: 110px; height: 110px; border-radius: 50%; background: rgba(255,0,0,0.2); border: 2px solid #f33; font-size: 1.2rem; }
+        #btn-reload { position: absolute; bottom: 250px; right: 50px; width: 70px; height: 70px; border-radius: 50%; }
+        #btn-grenade { position: absolute; bottom: 340px; right: 100px; width: 70px; height: 70px; border-radius: 50%; }
+        #btn-mode { position: absolute; bottom: 130px; right: 40px; width: 60px; height: 60px; font-size: 0.7rem; }
+        #btn-swap { position: absolute; top: 20px; right: 20px; width: 120px; height: 50px; background: rgba(0,0,0,0.5); }
+        #btn-console-toggle { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 100px; height: 30px; font-size: 0.7rem; }
 
         /* スティック */
-        #joystick-base { position: absolute; bottom: 10%; left: 8%; width: 140px; height: 140px; background: rgba(255,255,255,0.1); border-radius: 50%; display: none; }
-        #joystick-handle { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; transform: translate(-50%, -50%); }
+        #joystick-base { position: absolute; bottom: 80px; left: 80px; width: 160px; height: 160px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 50%; display: none; }
+        #joystick-handle { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: rgba(255,255,255,0.3); border-radius: 50%; transform: translate(-50%, -50%); }
 
-        #fullmap { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; z-index:110; flex-direction:column; align-items:center; justify-content:center; pointer-events:auto; }
+        /* コンソール */
+        #console-ui { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(0,0,0,0.95); border: 1px solid #0f0; padding: 10px; display: none; z-index: 200; pointer-events: auto; }
+        #console-log { height: 150px; overflow-y: auto; color: #0f0; font-size: 0.8rem; margin-bottom: 10px; border-bottom: 1px solid #040; }
+        #console-input { width: 100%; background: #111; color: #0f0; border: 1px solid #0f0; padding: 5px; box-sizing: border-box; }
+
+        /* タイマー等 */
+        #grenade-timer { position: absolute; bottom: 45%; left: 50%; transform: translateX(-50%); font-size: 2.5rem; color: #f33; font-weight: bold; display: none; text-shadow: 0 0 10px red; }
+        #fullmap { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; z-index: 300; pointer-events: auto; align-items: center; justify-content: center; flex-direction: column; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -53,300 +60,493 @@
 
     <canvas id="game-canvas"></canvas>
 
-    <div id="title-screen" class="screen">
-        <h1 style="color:#ffaa00; font-size:3rem; margin:0;">TACTICAL ELITE</h1>
-        <p>SELECT LOADOUT</p>
-        <div style="margin:20px;">
-            Primary: <select id="sel-primary" style="padding:10px;"><option value="M4A1">M4A1 (AR)</option><option value="MP5" selected>MP5 (SMG)</option></select>
-            Secondary: <select id="sel-secondary" style="padding:10px;"><option value="Hi-Capa" selected>Hi-Capa</option><option value="Glock">Glock 18c</option></select>
+    <div id="game-hud" class="overlay" style="display:none;">
+        <div id="crosshair"></div>
+        <div id="hud-top"><div id="compass">N ・ ・ ・ E ・ ・ ・ S ・ ・ ・ W</div></div>
+        
+        <div id="minimap-container" onclick="toggleFullMap()">
+            <div id="minimap-player"></div>
+            <canvas id="minimap-canvas" width="140" height="140"></canvas>
         </div>
-        <button id="start-btn" style="padding:15px 50px; font-size:1.5rem; background:#ffaa00; border:none; border-radius:5px; cursor:pointer;">DEPLOY</button>
+
+        <div id="ammo-hud">
+            <div id="weapon-name">MP5</div>
+            <div><span id="ammo-main">30</span><span id="ammo-reserve"> / 120</span></div>
+            <div id="fire-mode-label">AUTO</div>
+        </div>
+
+        <div id="grenade-timer">3.0</div>
+
+        <div id="btn-shoot" class="btn">FIRE</div>
+        <div id="btn-reload" class="btn">RELOAD</div>
+        <div id="btn-grenade" class="btn">GRENADE</div>
+        <div id="btn-mode" class="btn">MODE<br>SELECT</div>
+        <div id="btn-swap" class="btn">SWAP WEAPON</div>
+        <div id="btn-console-toggle" class="btn">~ CONSOLE</div>
+        
+        <div id="joystick-base"><div id="joystick-handle"></div></div>
     </div>
 
-    <div id="game-ui" style="display:none;">
-        <div id="compass" class="ui">N ・ ・ E ・ ・ S ・ ・ W</div>
-        <div id="minimap-container" class="ui"><div id="minimap-player"></div><canvas id="minimap-canvas" width="120" height="120"></canvas></div>
-        
-        <div id="ammo-hud" class="ui">
-            <span id="weapon-name">MP5</span><br>
-            <span id="ammo-count">30 / 120</span><br>
-            <span id="fire-mode">AUTO</span>
-        </div>
+    <div id="console-ui">
+        <div id="console-log"></div>
+        <input type="text" id="console-input" placeholder="Type command: bot_add [num], killall, noclip, help">
+    </div>
 
-        <div id="btn-shoot" class="btn ui">FIRE</div>
-        <div id="btn-grenade" class="btn ui">GRENADE</div>
-        <div id="btn-reload" class="btn ui">RELOAD</div>
-        <div id="btn-mode" class="btn ui">MODE</div>
-        <div id="btn-swap" class="btn ui">SWAP</div>
-        <div id="btn-console-toggle" class="btn ui">CONSOLE</div>
-        <div id="joystick-base" class="ui"><div id="joystick-handle"></div></div>
-        
-        <div id="console-ui">
-            <div id="console-log"></div>
-            <input type="text" id="console-input" placeholder="bot_add, killall...">
+    <div id="title-screen" class="screen">
+        <h1 style="color:var(--primary); font-size:4rem; margin:0; text-shadow: 0 0 20px var(--primary);">TACTICAL ELITE</h1>
+        <p style="letter-spacing:5px;">ADVANCED MOBILE WARFARE</p>
+        <div style="background:rgba(255,255,255,0.05); padding:30px; border-radius:15px; margin:20px; border:1px solid #444;">
+            <div style="margin-bottom:15px;">
+                PRIMARY: <select id="sel-primary" style="background:#222; color:white; padding:5px;">
+                    <option value="M4A1">M4A1 (Assault Rifle)</option>
+                    <option value="MP5" selected>MP5 (Submachine Gun)</option>
+                </select>
+            </div>
+            <div>
+                SECONDARY: <select id="sel-secondary" style="background:#222; color:white; padding:5px;">
+                    <option value="Hi-Capa" selected>Hi-Capa 5.1 (Handgun)</option>
+                    <option value="Glock">Glock 18C (Full Auto)</option>
+                </select>
+            </div>
         </div>
+        <button id="start-btn" style="padding:15px 60px; font-size:1.5rem; background:var(--primary); color:black; border:none; font-weight:bold; border-radius:5px; cursor:pointer;">DEPLOY TO ZONE</button>
     </div>
 
     <div id="clear-screen" class="screen" style="display:none;">
-        <h1 style="color:#0f0;">MISSION COMPLETE</h1>
-        <button onclick="location.reload()" style="padding:15px 50px;">REDEPLOY</button>
+        <h1 style="color:#0f0; font-size:3rem;">MISSION COMPLETE</h1>
+        <p>ALL HOSTILE FORCES ELIMINATED</p>
+        <button onclick="location.reload()" style="padding:15px 40px; margin-top:20px;">RETURN TO BASE</button>
     </div>
 
-    <div id="fullmap" onclick="this.style.display='none'">
-        <h2>TACTICAL MAP</h2>
-        <div id="fullmap-render" style="width:300px; height:300px; border:2px solid #fff; position:relative;"></div>
-        <p>TAP TO CLOSE</p>
+    <div id="fullmap" onclick="toggleFullMap()">
+        <h2 style="color:var(--primary);">TACTICAL SATELLITE VIEW</h2>
+        <div id="fullmap-box" style="width:80vw; height:80vw; max-width:500px; max-height:500px; border:2px solid white; position:relative; background:#111;">
+            <canvas id="fullmap-canvas" width="500" height="500" style="width:100%; height:100%;"></canvas>
+        </div>
+        <p>TAP ANYWHERE TO CLOSE</p>
     </div>
 
 <script>
-    // --- 1. 武器データ ---
-    const WEAPON_DB = {
-        'M4A1': { damage: 30, mag: 30, reserve: 90, rate: 100, modes: ['AUTO', 'SEMI'], reload: 2000, length: 0.7, color: 0x222222 },
-        'MP5': { damage: 18, mag: 30, reserve: 120, rate: 70, modes: ['AUTO', 'BURST', 'SEMI'], reload: 1500, length: 0.5, color: 0x111111 },
-        'Hi-Capa': { damage: 35, mag: 15, reserve: 45, rate: 250, modes: ['SEMI'], reload: 1200, length: 0.3, color: 0x444444 },
-        'Glock': { damage: 15, mag: 18, reserve: 54, rate: 60, modes: ['AUTO', 'SEMI'], reload: 1100, length: 0.25, color: 0x222222 },
-        'Knife': { damage: 100, mag: 0, reserve: 0, rate: 500, modes: ['MELEE'], reload: 0, length: 0.4, color: 0xcccccc }
-    };
+/**
+ * --- GAME CONFIGURATION & DATABASE ---
+ */
+const WEAPONS = {
+    'M4A1':    { type:'AR',  dmg:32, mag:30, res:90,  rate:100, modes:['AUTO','SEMI'],        reload:2200, len:0.7, color:0x222222 },
+    'MP5':     { type:'SMG', dmg:20, mag:30, res:120, rate:70,  modes:['AUTO','BURST','SEMI'], reload:1800, len:0.5, color:0x111111 },
+    'Hi-Capa': { type:'HG',  dmg:35, mag:15, res:45,  rate:250, modes:['SEMI'],               reload:1300, len:0.3, color:0x444444 },
+    'Glock':   { type:'HG',  dmg:18, mag:18, res:54,  rate:65,  modes:['AUTO','SEMI'],        reload:1200, len:0.28,color:0x222222 },
+    'Knife':   { type:'MEL', dmg:100,mag:0,  res:0,   rate:500, modes:['MELEE'],              reload:0,    len:0.4, color:0xcccccc }
+};
 
-    let inventory = { main: 'MP5', sub: 'Hi-Capa', melee: 'Knife', current: 'main' };
-    let cur = null; // 現在の武器インスタンス
-    let isReloading = false, isShooting = false, lastShot = 0, burstCount = 0;
+let inv = { main:'MP5', sub:'Hi-Capa', melee:'Knife', active:'main' };
+let cur = null; // Current weapon state
+let isPlaying = false;
+let isReloading = false;
+let isShooting = false;
+let lastFire = 0;
+let burstIdx = 0;
 
-    // --- 2. シーン構築 ---
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
-    scene.fog = new THREE.Fog(0x1a1a2e, 20, 100);
+/**
+ * --- THREE.JS SCENE SETUP ---
+ */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a0f);
+scene.fog = new THREE.Fog(0x0a0a0f, 20, 120);
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const player = new THREE.Object3D();
-    scene.add(player); player.add(camera); camera.position.y = 1.7;
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const playerRig = new THREE.Object3D();
+scene.add(playerRig);
+playerRig.add(camera);
+camera.position.y = 1.7;
 
-    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('game-canvas'), antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('game-canvas'), antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // テクスチャ生成
-    function createTexture(c1, c2) {
-        const canvas = document.createElement('canvas'); canvas.width=128; canvas.height=128;
-        const ctx = canvas.getContext('2d'); ctx.fillStyle=c1; ctx.fillRect(0,0,128,128);
-        for(let i=0;i<1000;i++){ctx.fillStyle=c2; ctx.fillRect(Math.random()*128,Math.random()*128,2,2);}
-        const tex = new THREE.CanvasTexture(canvas); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(20,20);
-        return tex;
+// Procedural Texture Generator
+function getTex(c1, c2, noise=1000) {
+    const cvs = document.createElement('canvas'); cvs.width=256; cvs.height=256;
+    const ctx = cvs.getContext('2d'); ctx.fillStyle=c1; ctx.fillRect(0,0,256,256);
+    for(let i=0; i<noise; i++) { ctx.fillStyle=c2; ctx.fillRect(Math.random()*256, Math.random()*256, 2, 2); }
+    const tex = new THREE.CanvasTexture(cvs); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(15,15);
+    return tex;
+}
+
+const groundMat = new THREE.MeshStandardMaterial({ map: getTex('#1a1c12', '#2d301d', 5000), roughness: 0.8 });
+const wallMat = new THREE.MeshStandardMaterial({ map: getTex('#333', '#444', 3000), metalness: 0.2 });
+
+// World Objects
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), groundMat);
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+const obstacles = [], bots = [], deathBoxes = [], tracers = [], grenades = [];
+const predictionLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color: 0x00ff00, transparent:true, opacity:0.5}));
+scene.add(predictionLine);
+
+function buildEnvironment() {
+    // Obstacles
+    for(let i=0; i<45; i++) {
+        const x = (Math.random()-0.5)*200, z = (Math.random()-0.5)*200;
+        if(Math.random() > 0.7) { // Tree
+            const t = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.4, 5), new THREE.MeshStandardMaterial({color:0x4d2926}));
+            const l = new THREE.Mesh(new THREE.SphereGeometry(2, 8, 8), new THREE.MeshStandardMaterial({color:0x1e3a1a}));
+            t.position.set(x, 2.5, z); l.position.set(x, 5.5, z);
+            t.castShadow = true; l.castShadow = true; scene.add(t, l);
+            obstacles.push(t);
+        } else { // House/Building
+            const h = Math.random()*12 + 4;
+            const b = new THREE.Mesh(new THREE.BoxGeometry(6, h, 6), wallMat);
+            b.position.set(x, h/2, z); b.castShadow = true; b.receiveShadow = true;
+            scene.add(b); obstacles.push(b);
+        }
     }
-    const groundMat = new THREE.MeshStandardMaterial({ map: createTexture('#222510', '#1a1c0d') });
-    const wallMat = new THREE.MeshStandardMaterial({ map: createTexture('#444', '#333') });
+}
+buildEnvironment();
 
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(200,200), groundMat);
-    floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(50, 100, 50); dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048, 2048);
+scene.add(dirLight, new THREE.AmbientLight(0x404048, 0.5));
 
-    const obstacles = [], bots = [], deathBoxes = [], tracers = [], grenades = [];
+// Weapon Mesh
+const weaponPivot = new THREE.Group(); camera.add(weaponPivot);
+const gunMesh = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.14, 0.6), new THREE.MeshStandardMaterial({color:0x111, metalness:0.7, roughness:0.3}));
+gunMesh.position.set(0.3, -0.25, -0.45); weaponPivot.add(gunMesh);
+
+/**
+ * --- INPUT CONTROLLER (FIXED FOR MOBILE) ---
+ */
+const touches = {};
+const moveCtrl = { id: null, active: false, startX:0, startY:0, dx:0, dy:0 };
+const lookCtrl = { id: null, active: false, lastX:0, lastY:0 };
+let yaw = 0, pitch = 0;
+
+window.addEventListener('touchstart', e => {
+    for(let t of e.changedTouches) {
+        if(t.target.closest('.btn') || t.target.closest('#console-ui') || t.target.closest('select')) continue;
+        
+        if(t.clientX < window.innerWidth / 2 && !moveCtrl.active) {
+            moveCtrl.active = true; moveCtrl.id = t.identifier;
+            moveCtrl.startX = t.clientX; moveCtrl.startY = t.clientY;
+            const js = document.getElementById('joystick-base');
+            js.style.display = 'block'; js.style.left = (t.clientX - 80) + 'px'; js.style.top = (t.clientY - 80) + 'px';
+        } else if(!lookCtrl.active) {
+            lookCtrl.active = true; lookCtrl.id = t.identifier;
+            lookCtrl.lastX = t.clientX; lookCtrl.lastY = t.clientY;
+        }
+    }
+}, {passive:false});
+
+window.addEventListener('touchmove', e => {
+    for(let t of e.changedTouches) {
+        if(t.identifier === moveCtrl.id) {
+            moveCtrl.dx = (t.clientX - moveCtrl.startX) / 60;
+            moveCtrl.dy = (t.clientY - moveCtrl.startY) / 60;
+            const dist = Math.sqrt(moveCtrl.dx**2 + moveCtrl.dy**2);
+            if(dist > 1) { moveCtrl.dx /= dist; moveCtrl.dy /= dist; }
+            document.getElementById('joystick-handle').style.transform = `translate(calc(-50% + ${moveCtrl.dx*50}px), calc(-50% + ${moveCtrl.dy*50}px))`;
+        }
+        if(t.identifier === lookCtrl.id) {
+            yaw -= (t.clientX - lookCtrl.lastX) * 0.006;
+            pitch -= (t.clientY - lookCtrl.lastY) * 0.006;
+            pitch = Math.max(-Math.PI/2.1, Math.min(Math.PI/2.1, pitch));
+            lookCtrl.lastX = t.clientX; lookCtrl.lastY = t.clientY;
+        }
+    }
+}, {passive:false});
+
+const handleEnd = e => {
+    for(let t of e.changedTouches) {
+        if(t.identifier === moveCtrl.id) { 
+            moveCtrl.active = false; moveCtrl.id = null; moveCtrl.dx = 0; moveCtrl.dy = 0;
+            document.getElementById('joystick-base').style.display = 'none';
+        }
+        if(t.identifier === lookCtrl.id) { lookCtrl.active = false; lookCtrl.id = null; }
+    }
+};
+window.addEventListener('touchend', handleEnd); window.addEventListener('touchcancel', handleEnd);
+
+/**
+ * --- WEAPON & COMBAT LOGIC ---
+ */
+function spawnBot(pos) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(1, 1.8, 1), new THREE.MeshStandardMaterial({color: 0xff3333}));
+    b.position.copy(pos || new THREE.Vector3((Math.random()-0.5)*180, 0.9, (Math.random()-0.5)*180));
+    b.hp = 100; b.castShadow = true; scene.add(b); bots.push(b);
+    log(`Bot spawned at ${Math.round(b.position.x)}, ${Math.round(b.position.z)}`);
+}
+
+function equip(slot) {
+    if(isReloading) return;
+    inv.active = slot;
+    const data = WEAPONS[inv[slot]];
+    cur = { ...data, name: inv[slot], curMag: data.mag, mode: data.modes[0] };
+    gunMesh.scale.set(1, 1, cur.len);
+    gunMesh.material.color.setHex(cur.color);
+    updateHUD();
+}
+
+function updateHUD() {
+    document.getElementById('weapon-name').innerText = cur.name;
+    document.getElementById('ammo-main').innerText = (cur.name==='Knife') ? '--' : cur.curMag;
+    document.getElementById('ammo-reserve').innerText = (cur.name==='Knife') ? '' : ` / ${cur.res}`;
+    document.getElementById('fire-mode-label').innerText = cur.mode;
+}
+
+function doReload() {
+    if(isReloading || cur.name === 'Knife' || cur.curMag === cur.mag || cur.res <= 0) return;
+    isReloading = true;
+    document.getElementById('fire-mode-label').innerText = "RELOADING...";
+    weaponPivot.rotation.x = -0.6; // Animation
+    setTimeout(() => {
+        const need = cur.mag - cur.curMag;
+        const take = Math.min(need, cur.res);
+        cur.curMag += take; cur.res -= take;
+        isReloading = false; weaponPivot.rotation.x = 0;
+        updateHUD();
+    }, cur.reload);
+}
+
+function shoot() {
+    if(isReloading || (cur.name !== 'Knife' && cur.curMag <= 0)) { if(cur.name!=='Knife') doReload(); return; }
+    const now = Date.now();
+    if(now - lastFire < cur.rate) return;
+    lastFire = now;
+
+    if(cur.name !== 'Knife') cur.curMag--;
+    updateHUD();
+
+    // Recoil Anim
+    gunMesh.position.z += 0.08; setTimeout(()=>gunMesh.position.z -= 0.08, 50);
+
+    const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
     
-    function spawnMap() {
-        for(let i=0; i<40; i++) {
-            const x = (Math.random()-0.5)*160, z = (Math.random()-0.5)*160;
-            if(Math.random() > 0.6) { // 木
-                const t = new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.4,5), new THREE.MeshStandardMaterial({color:0x3d251e}));
-                const l = new THREE.Mesh(new THREE.SphereGeometry(1.5), new THREE.MeshStandardMaterial({color:0x1b3017}));
-                t.position.set(x, 2.5, z); l.position.set(x, 5, z);
-                scene.add(t, l);
-            } else { // 建物
-                const h = Math.random()*10+5;
-                const b = new THREE.Mesh(new THREE.BoxGeometry(6, h, 6), wallMat);
-                b.position.set(x, h/2, z); scene.add(b); obstacles.push(b);
-            }
+    // Tracer Bullet
+    const tGeo = new THREE.CylinderGeometry(0.01, 0.01, 1.2, 8);
+    const tMat = new THREE.MeshBasicMaterial({color: 0xffff00});
+    const tracer = new THREE.Mesh(tGeo, tMat);
+    tracer.position.copy(playerRig.position).add(new THREE.Vector3(0,1.6,0));
+    tracer.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir); // Align with direction
+    scene.add(tracer);
+    tracers.push({ mesh: tracer, vel: dir.clone().multiplyScalar(1.8), life: 60 });
+
+    // Hitscan
+    const ray = new THREE.Raycaster(playerRig.position.clone().add(new THREE.Vector3(0,1.6,0)), dir);
+    const hits = ray.intersectObjects(bots);
+    if(hits.length > 0) {
+        const target = hits[0].object;
+        target.hp -= cur.dmg;
+        target.material.color.setHex(0xffffff); setTimeout(()=>target.material.color.setHex(0xff3333), 50);
+        
+        if(target.hp <= 0) {
+            // Drop Deathbox
+            const db = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 0.5), new THREE.MeshStandardMaterial({color:0x00ff00, emissive:0x003300}));
+            db.position.copy(target.position); db.position.y = 0.2; scene.add(db); deathBoxes.push(db);
+            
+            scene.remove(target);
+            bots.splice(bots.indexOf(target), 1);
+            if(bots.length === 0) document.getElementById('clear-screen').style.display = 'flex';
         }
     }
-    spawnMap();
+}
 
-    function spawnBot() {
-        const b = new THREE.Mesh(new THREE.BoxGeometry(1, 1.8, 1), new THREE.MeshStandardMaterial({color: 0xff4444}));
-        b.position.set((Math.random()-0.5)*140, 0.9, (Math.random()-0.5)*140);
-        b.hp = 100; scene.add(b); bots.push(b);
-    }
-    for(let i=0; i<10; i++) spawnBot();
+/**
+ * --- GRENADE SYSTEM (COOKING & PREDICTION) ---
+ */
+let cook = false, cookTime = 3.0;
+const gBtn = document.getElementById('btn-grenade');
 
-    const light = new THREE.DirectionalLight(0xffffff, 1); light.position.set(50,100,50); light.castShadow=true;
-    scene.add(light, new THREE.AmbientLight(0x404040));
+gBtn.ontouchstart = e => { e.preventDefault(); cook = true; cookTime = 3.0; document.getElementById('grenade-timer').style.display='block'; };
+gBtn.ontouchend = e => {
+    if(!cook) return;
+    const g = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshStandardMaterial({color:0x113311}));
+    g.position.copy(playerRig.position).add(new THREE.Vector3(0, 1.7, 0));
+    const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
+    const force = dir.multiplyScalar(0.55).add(new THREE.Vector3(0, 0.2, 0));
+    scene.add(g);
+    grenades.push({ mesh: g, vel: force, timer: cookTime * 60 });
+    
+    cook = false; document.getElementById('grenade-timer').style.display='none';
+    predictionLine.geometry.setFromPoints([]);
+};
 
-    // 武器モデル
-    const weaponGroup = new THREE.Group(); camera.add(weaponGroup);
-    const gunMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.15, 0.6), new THREE.MeshStandardMaterial({color:0x111}));
-    gunMesh.position.set(0.3, -0.25, -0.4); weaponGroup.add(gunMesh);
+function updateGrenades() {
+    for(let i=grenades.length-1; i>=0; i--) {
+        const g = grenades[i];
+        g.mesh.position.add(g.vel);
+        g.vel.y -= 0.015; // Gravity
+        
+        if(g.mesh.position.y < 0.1) { g.mesh.position.y = 0.1; g.vel.multiplyScalar(0.5); g.vel.y *= -0.3; } // Bounce
+        
+        g.timer--;
+        if(g.timer <= 0) {
+            // Explosion
+            const flash = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 16), new THREE.MeshBasicMaterial({color:0xffaa00, transparent:true, opacity:0.7}));
+            flash.position.copy(g.mesh.position); scene.add(flash);
+            setTimeout(()=>scene.remove(flash), 100);
 
-    const predictionLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color: 0x00ff00}));
-    scene.add(predictionLine);
-
-    // --- 3. システム関数 ---
-    function equip(slot) {
-        if(isReloading) return;
-        inventory.current = slot;
-        const data = WEAPON_DB[inventory[slot]];
-        cur = { ...data, name: inventory[slot], currentMag: data.mag, curMode: data.modes[0] };
-        gunMesh.scale.set(1, 1, cur.length);
-        gunMesh.material.color.setHex(cur.color);
-        updateUI();
-    }
-
-    function updateUI() {
-        document.getElementById('weapon-name').innerText = cur.name;
-        document.getElementById('ammo-count').innerText = (cur.name==='Knife') ? '--' : `${cur.currentMag} / ${cur.reserve}`;
-        document.getElementById('fire-mode').innerText = cur.curMode;
-    }
-
-    function reload() {
-        if(isReloading || cur.name === 'Knife' || cur.currentMag === cur.mag || cur.reserve <= 0) return;
-        isReloading = true;
-        document.getElementById('fire-mode').innerText = "RELOADING...";
-        weaponGroup.rotation.x = -0.5;
-        setTimeout(() => {
-            const need = cur.mag - cur.currentMag;
-            const take = Math.min(need, cur.reserve);
-            cur.currentMag += take; cur.reserve -= take;
-            isReloading = false; weaponGroup.rotation.x = 0;
-            updateUI();
-        }, cur.reload);
-    }
-
-    // --- 4. 入力管理 (バグ修正版) ---
-    const move = { id: null, active: false, x:0, y:0, dx:0, dy:0 };
-    const look = { id: null, active: false, lastX:0, lastY:0 };
-    let pRotY = 0, cRotX = 0;
-
-    window.addEventListener('touchstart', e => {
-        for(let t of e.changedTouches) {
-            if(t.target.closest('.btn') || t.target.closest('#console-ui')) continue;
-            if(t.clientX < window.innerWidth/2 && !move.active) {
-                move.id = t.identifier; move.active = true; move.x = t.clientX; move.y = t.clientY;
-                document.getElementById('joystick-base').style.display='block';
-                document.getElementById('joystick-base').style.left=(t.clientX-70)+'px';
-                document.getElementById('joystick-base').style.top=(t.clientY-70)+'px';
-            } else if(!look.active) {
-                look.id = t.identifier; look.active = true; look.lastX = t.clientX; look.lastY = t.clientY;
+            // Damage logic (safe removal)
+            for(let j=bots.length-1; j>=0; j--) {
+                if(bots[j].position.distanceTo(g.mesh.position) < 7) {
+                    scene.remove(bots[j]); bots.splice(j, 1);
+                }
             }
+            if(bots.length===0) document.getElementById('clear-screen').style.display='flex';
+            scene.remove(g.mesh); grenades.splice(i, 1);
         }
+    }
+}
+
+/**
+ * --- MAPS & UI UPDATES ---
+ */
+function updateMinimap() {
+    const canvas = document.getElementById('minimap-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 140, 140);
+    
+    // Draw Enemy dots
+    ctx.fillStyle = '#f33';
+    bots.forEach(b => {
+        const dx = (b.position.x - playerRig.position.x) * 1.2 + 70;
+        const dz = (b.position.z - playerRig.position.z) * 1.2 + 70;
+        if(dx>0 && dx<140 && dz>0 && dz<140) ctx.fillRect(dx-2, dz-2, 4, 4);
     });
+    
+    // Compass Update
+    const deg = Math.round(yaw * (180/Math.PI) % 360);
+    document.getElementById('compass').innerText = ` ${deg}° | N ・ ・ E ・ ・ S ・ ・ W `;
+    document.getElementById('minimap-player').style.transform = `translate(-50%, -50%) rotate(${-yaw}rad)`;
+}
 
-    window.addEventListener('touchmove', e => {
-        for(let t of e.changedTouches) {
-            if(t.identifier === move.id) {
-                move.dx = (t.clientX - move.x)/50; move.dy = (t.clientY - move.y)/50;
-                const d = Math.sqrt(move.dx**2+move.dy**2); if(d>1){move.dx/=d; move.dy/=d;}
-                document.getElementById('joystick-handle').style.transform = `translate(calc(-50% + ${move.dx*40}px), calc(-50% + ${move.dy*40}px))`;
-            }
-            if(t.identifier === look.id) {
-                pRotY -= (t.clientX - look.lastX)*0.005; cRotX -= (t.clientY - look.lastY)*0.005;
-                cRotX = Math.max(-1.5, 1.5, cRotX); look.lastX=t.clientX; look.lastY=t.clientY;
-            }
-        }
-    });
+function toggleFullMap() {
+    const fm = document.getElementById('fullmap');
+    const isShowing = fm.style.display === 'flex';
+    fm.style.display = isShowing ? 'none' : 'flex';
+    if(!isShowing) {
+        const canvas = document.getElementById('fullmap-canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#000'; ctx.fillRect(0,0,500,500);
+        ctx.fillStyle = '#555';
+        obstacles.forEach(o => ctx.fillRect(o.position.x+250, o.position.z+250, 4, 4));
+        ctx.fillStyle = '#0f0'; ctx.fillRect(playerRig.position.x+248, playerRig.position.z+248, 6, 6);
+    }
+}
 
-    const stopTouch = e => {
-        for(let t of e.changedTouches) {
-            if(t.identifier === move.id) { move.active=false; move.id=null; move.dx=0; move.dy=0; document.getElementById('joystick-base').style.display='none'; }
-            if(t.identifier === look.id) { look.active=false; look.id=null; }
-        }
-    };
-    window.addEventListener('touchend', stopTouch); window.addEventListener('touchcancel', stopTouch);
+/**
+ * --- CONSOLE SYSTEM ---
+ */
+function log(msg) {
+    const logEl = document.getElementById('console-log');
+    logEl.innerHTML += `<div>> ${msg}</div>`;
+    logEl.scrollTop = logEl.scrollHeight;
+}
 
-    // --- 5. 射撃・グレネード ---
-    function fire() {
-        if(isReloading || (cur.name!=='Knife' && cur.currentMag <= 0)) { if(cur.name!=='Knife') reload(); return; }
-        const now = Date.now(); if(now - lastShot < cur.rate) return;
-        lastShot = now;
-        if(cur.name !== 'Knife') cur.currentMag--; updateUI();
+document.getElementById('console-input').addEventListener('keydown', e => {
+    if(e.key === 'Enter') {
+        const cmd = e.target.value.toLowerCase().split(' ');
+        e.target.value = '';
+        if(cmd[0] === 'bot_add') {
+            const n = parseInt(cmd[1]) || 1;
+            for(let i=0; i<n; i++) spawnBot();
+        } else if(cmd[0] === 'killall') {
+            bots.forEach(b => scene.remove(b)); bots.length = 0;
+            document.getElementById('clear-screen').style.display='flex';
+        } else if(cmd[0] === 'help') {
+            log('Commands: bot_add [n], killall, help');
+        } else { log('Unknown command.'); }
+    }
+});
 
-        const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
-        // 曳光弾
-        const b = new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,1), new THREE.MeshBasicMaterial({color:0xffff00}));
-        b.position.copy(player.position).add(new THREE.Vector3(0,1.6,0));
-        b.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
-        scene.add(b); tracers.push({ mesh:b, vel:dir.clone().multiplyScalar(1.5), life:60 });
+/**
+ * --- MAIN ENGINE LOOP ---
+ */
+function animate() {
+    if(!isPlaying) return;
+    requestAnimationFrame(animate);
 
-        // ヒット判定
-        const ray = new THREE.Raycaster(player.position.clone().add(new THREE.Vector3(0,1.6,0)), dir);
-        const hits = ray.intersectObjects(bots);
-        if(hits.length > 0) {
-            const hit = hits[0].object; hit.hp -= cur.damage;
-            if(hit.hp <= 0) { 
-                const db = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.4,0.5), new THREE.MeshStandardMaterial({color:0x00ff00}));
-                db.position.copy(hit.position); db.position.y=0.2; scene.add(db); deathBoxes.push(db);
-                scene.remove(hit); bots.splice(bots.indexOf(hit), 1);
-                if(bots.length===0) document.getElementById('clear-screen').style.display='flex';
-            }
+    // View
+    playerRig.rotation.y = yaw;
+    camera.rotation.x = pitch;
+
+    // Movement
+    if(moveCtrl.active) {
+        const speed = (moveCtrl.dy < -0.8) ? 0.22 : 0.12; // Sprint
+        const moveVec = new THREE.Vector3(moveCtrl.dx, 0, moveCtrl.dy).normalize().applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
+        playerRig.position.add(moveVec.multiplyScalar(speed));
+    }
+    
+    // Boundary
+    playerRig.position.x = THREE.MathUtils.clamp(playerRig.position.x, -145, 145);
+    playerRig.position.z = THREE.MathUtils.clamp(playerRig.position.z, -145, 145);
+
+    // Combat Logic
+    if(isShooting) {
+        if(cur.mode === 'AUTO') shoot();
+        else if(cur.mode === 'BURST' && burstIdx < 3) { shoot(); burstIdx++; if(burstIdx>=3) isShooting=false; }
+        else { shoot(); isShooting = false; }
+    }
+
+    if(cook) {
+        cookTime -= 1/60; document.getElementById('grenade-timer').innerText = cookTime.toFixed(1);
+        if(cookTime <= 0) { gBtn.ontouchend(); }
+        // Prediction Line
+        const pts = [], pPos = playerRig.position.clone().add(new THREE.Vector3(0,1.7,0)), pVel = new THREE.Vector3();
+        camera.getWorldDirection(pVel); pVel.multiplyScalar(0.55).add(new THREE.Vector3(0, 0.2, 0));
+        for(let i=0; i<40; i++) { pts.push(pPos.clone()); pPos.add(pVel); pVel.y -= 0.015; if(pPos.y < 0) break; }
+        predictionLine.geometry.setFromPoints(pts);
+    }
+
+    // Update Particles
+    for(let i=tracers.length-1; i>=0; i--) { tracers[i].mesh.position.add(tracers[i].vel); tracers[i].life--; if(tracers[i].life<=0){ scene.remove(tracers[i].mesh); tracers.splice(i,1); } }
+    updateGrenades();
+
+    // Pickup ammo
+    for(let i=deathBoxes.length-1; i>=0; i--) {
+        if(playerRig.position.distanceTo(deathBoxes[i].position) < 2.5) {
+            if(cur.name !== 'Knife') { cur.res += 30; updateHUD(); log("Ammo picked up (+30)"); }
+            scene.remove(deathBoxes[i]); deathBoxes.splice(i,1);
         }
     }
 
-    let cook = false, cookTime = 3.0;
-    const btnG = document.getElementById('btn-grenade');
-    btnG.ontouchstart = e => { e.preventDefault(); cook=true; cookTime=3.0; };
-    btnG.ontouchend = e => { 
-        if(!cook) return;
-        const g = new THREE.Mesh(new THREE.SphereGeometry(0.15), new THREE.MeshStandardMaterial({color:0x111}));
-        g.position.copy(player.position).add(new THREE.Vector3(0,1.7,0));
-        const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
-        scene.add(g); grenades.push({ mesh:g, vel:dir.multiplyScalar(0.5).add(new THREE.Vector3(0,0.2,0)), timer: cookTime*60 });
-        cook=false; predictionLine.geometry.setFromPoints([]);
-    };
+    updateMinimap();
+    renderer.render(scene, camera);
+}
 
-    // --- 6. ループ ---
-    function animate() {
-        requestAnimationFrame(animate);
-        player.rotation.y = pRotY; camera.rotation.x = cRotX;
+// Start Trigger
+document.getElementById('start-btn').onclick = () => {
+    inv.main = document.getElementById('sel-primary').value;
+    inv.sub = document.getElementById('sel-secondary').value;
+    equip('main');
+    isPlaying = true;
+    document.getElementById('title-screen').style.display = 'none';
+    document.getElementById('game-hud').style.display = 'block';
+    for(let i=0; i<8; i++) spawnBot();
+    animate();
+    if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+};
 
-        if(move.active) {
-            const s = (move.dy < -0.8) ? 0.25 : 0.12;
-            const d = new THREE.Vector3(move.dx, 0, move.dy).normalize().applyAxisAngle(new THREE.Vector3(0,1,0), pRotY);
-            player.position.add(d.multiplyScalar(s));
-        }
-
-        if(isShooting) {
-            if(cur.curMode === 'AUTO') fire();
-            else if(cur.curMode === 'BURST' && burstCount < 3) { fire(); burstCount++; if(burstCount>=3) isShooting=false; }
-            else { fire(); isShooting=false; }
-        }
-
-        if(cook) {
-            cookTime -= 1/60;
-            const pts = [], pPos = player.position.clone().add(new THREE.Vector3(0,1.7,0)), pVel = new THREE.Vector3();
-            camera.getWorldDirection(pVel); pVel.multiplyScalar(0.5).add(new THREE.Vector3(0,0.2,0));
-            for(let i=0; i<30; i++) { pts.push(pPos.clone()); pPos.add(pVel); pVel.y-=0.02; if(pPos.y<0) break; }
-            predictionLine.geometry.setFromPoints(pts);
-        }
-
-        // 弾丸・グレネード・デスボックス
-        for(let i=tracers.length-1; i>=0; i--) { tracers[i].mesh.position.add(tracers[i].vel); tracers[i].life--; if(tracers[i].life<=0){ scene.remove(tracers[i].mesh); tracers.splice(i,1); } }
-        for(let i=grenades.length-1; i>=0; i--) {
-            const g = grenades[i]; g.mesh.position.add(g.vel); g.vel.y-=0.02; if(g.mesh.position.y<0.1) g.mesh.position.y=0.1;
-            g.timer--; if(g.timer<=0) {
-                bots.filter(b => b.position.distanceTo(g.mesh.position)<6).forEach(b => { b.hp=0; scene.remove(b); bots.splice(bots.indexOf(b), 1); });
-                scene.remove(g.mesh); grenades.splice(i,1);
-            }
-        }
-        deathBoxes.forEach((db, i) => { if(player.position.distanceTo(db.position)<2) { cur.reserve += 30; updateUI(); scene.remove(db); deathBoxes.splice(i,1); } });
-
-        // ミニマップ
-        const ctx = document.getElementById('minimap-canvas').getContext('2d');
-        ctx.clearRect(0,0,120,120); ctx.fillStyle='red';
-        bots.forEach(b => { ctx.fillRect((b.position.x-player.position.x)*1.5+60, (b.position.z-player.position.z)*1.5+60, 4, 4); });
-
-        renderer.render(scene, camera);
+// UI Buttons
+document.getElementById('btn-shoot').ontouchstart = e => { e.preventDefault(); isShooting = true; burstIdx = 0; };
+document.getElementById('btn-shoot').ontouchend = e => isShooting = false;
+document.getElementById('btn-reload').onclick = doReload;
+document.getElementById('btn-swap').onclick = () => {
+    const slots = ['main', 'sub', 'melee'];
+    let next = slots[(slots.indexOf(inv.active) + 1) % 3];
+    equip(next);
+};
+document.getElementById('btn-mode').onclick = () => {
+    if(cur.modes.length > 1) {
+        cur.mode = cur.modes[(cur.modes.indexOf(cur.mode)+1) % cur.modes.length];
+        updateHUD();
     }
-
-    // イベント
-    document.getElementById('start-btn').onclick = () => { 
-        inventory.main = document.getElementById('sel-primary').value;
-        inventory.sub = document.getElementById('sel-secondary').value;
-        equip('main');
-        document.getElementById('title-screen').style.display='none';
-        document.getElementById('game-ui').style.display='block';
-        animate();
-    };
-    document.getElementById('btn-shoot').ontouchstart = e => { e.preventDefault(); isShooting=true; burstCount=0; };
-    document.getElementById('btn-shoot').ontouchend = e => isShooting=false;
-    document.getElementById('btn-reload').onclick = reload;
-    document.getElementById('btn-mode').onclick = () => { cur.curMode = cur.modes[(cur.modes.indexOf(cur.curMode)+1)%cur.modes.length]; updateUI(); };
-    document.getElementById('btn-swap').onclick = () => { const s=['main','sub','melee']; equip(s[(s.indexOf(inventory.current)+1)%3]); };
-    document.getElementById('minimap-container').onclick = () => document.getElementById('fullmap').style.display='flex';
+};
+document.getElementById('btn-console-toggle').onclick = () => {
+    const c = document.getElementById('console-ui');
+    c.style.display = c.style.display === 'none' ? 'block' : 'none';
+};
 </script>
 </body>
 </html>
