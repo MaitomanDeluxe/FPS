@@ -181,6 +181,9 @@
 <script>
 /** --- CORE --- */
 const scene = new THREE.Scene();
+
+const crosshair = document.getElementById("crosshair-container");
+    
 const cameraFOV = { current: 75, target: 75 }; 
 const camera = new THREE.PerspectiveCamera(cameraFOV.current, window.innerWidth/window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('game-canvas'), antialias: false });
@@ -606,6 +609,18 @@ document.getElementById('btn-nvg').onclick = () => {
 
 /** --- GAME LOOP --- */
 function update() {
+
+
+// ADS時クロスヘアを消す
+if(isADS){
+    crosshair.style.display = "none";
+}else{
+    crosshair.style.display = "block";
+}
+
+
+
+    
     if(!isPlaying) return; requestAnimationFrame(update);
 
     // 反動
