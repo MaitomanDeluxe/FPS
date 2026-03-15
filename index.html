@@ -456,7 +456,7 @@ function tryShoot() {
     const curGrp = weaponGroups[curWepIdx];curGrp.position.z += 0.05;
 
 // 反動を追加
-recoil += isADS ? 0.0015 : 0.0027;;
+recoil += isADS ? 0.0015 : 0.0027;
 
     const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
     const startPos = camera.getWorldPosition(new THREE.Vector3());
@@ -466,6 +466,32 @@ const muzzlePos = weaponGroups[curWepIdx].localToWorld(new THREE.Vector3(0,0,-0.
 
     if(w.type === 'ar' || w.type === 'hg') {
         flashMuzzle(true);
+        // Hitscan Raycast
+const ray = new THREE.Raycaster(startPos, dir, 0, w.range);
+const allHits = ray.intersectObjects([...hittableTargets, ...envObjs], false);
+
+let endPos = startPos.clone().add(dir.multiplyScalar(50));
+
+if(allHits.length > 0){
+    const hit = allHits[0];
+    endPos = hit.point;
+
+    const obj = hit.object;
+
+    if(obj.userData && obj.userData.isBot){
+        const bGrp = obj.userData.botGroup;
+        const dmgMult = obj.userData.isHead ? 2.5 : 1.0;
+
+        bGrp.hp -= w.dmg * dmgMult;
+
+        spawnBlood(hit.point);
+        showHitMarker(obj.userData.isHead ? '#ffaa00' : '#ffffff');
+
+        if(bGrp.hp <= 0) killBot(bGrp);
+    }
+}
+
+spawnTracer(muzzlePos, endPos, 0xffffaa);
 
 }
 
