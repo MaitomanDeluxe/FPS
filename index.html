@@ -313,6 +313,7 @@ const gunAccMat = new THREE.MeshStandardMaterial({color: 0x111111, roughness: 0.
 
 // 1. M4A1 (ディテールアップ + アイアンサイト調整)
 const arGroup = new THREE.Group();
+  arGroup.scale.set(0.6,0.6,0.6);  
 const arRec = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.3), gunMat);
 const arHand = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.25), gunAccMat); arHand.position.set(0, 0.02, -0.25);
 const arBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.3), gunMat); arBarrel.rotation.x=Math.PI/2; arBarrel.position.set(0,0.03,-0.4);
@@ -341,7 +342,7 @@ arRearRight.position.set(0.012, 0.085, 0.05);
  new THREE.BoxGeometry(0.004, 0.035, 0.004),
  gunAccMat
 );
-arFront.position.set(0, 0.085, -0.38);
+arFront.position.set(0, 0.07, -0.42);
 arGroup.add(
  arRec,
  arHand,
@@ -352,7 +353,8 @@ arGroup.add(
  arRearRight,
  arFront
 );
-arGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.3); arGroup.adsPos = new THREE.Vector3(0, -0.06, -0.2); // ADS中心合わせ
+arGroup.idlePos = new THREE.Vector3(0.18, -0.18, -0.35);
+arGroup.adsPos = new THREE.Vector3(0, -0.02, -0.15);
 
 // 2. Handgun
 const hgGroup = new THREE.Group();
@@ -681,6 +683,11 @@ document.getElementById('btn-nvg').onclick = () => {
 
 /** --- GAME LOOP --- */
 function update() {
+    if(isADS){
+ crosshair.style.display="none";
+}else{
+ crosshair.style.display="block";
+}
 
 if(isADS){
 
