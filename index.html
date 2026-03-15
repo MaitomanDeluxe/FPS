@@ -398,7 +398,7 @@ function spawnTracer(start, end, colorHex) {
     tr.position.copy(start); tr.lookAt(end);
     tr.userData = { end: end.clone(), speed: 2.0, life: 10 };
     scene.add(tr); tracers.push(tr);
-}
+}}
 
 // Muzzle flash light
 const muzzleLight = new THREE.PointLight(0xffaa00, 0, 10);
