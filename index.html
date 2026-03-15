@@ -466,36 +466,7 @@ const muzzlePos = weaponGroups[curWepIdx].localToWorld(new THREE.Vector3(0,0,-0.
 
     if(w.type === 'ar' || w.type === 'hg') {
         flashMuzzle(true);
-        // Hitscan Raycast
-        const ray = new THREE.Raycaster(startPos, dir, 0, w.range);
-        const allHits = ray.intersectObjects([...hittableTargets, ...envObjs], false);
-        
-        let endPos = startPos.clone().add(dir.multiplyScalar(50)); // Default tracer end
-        
-        if(allHits.length > 0) {
-            const hit = allHits[0]; endPos = hit.point;
-            const obj = hit.object;
-            if(obj.userData && obj.userData.isBot) {
-                const bGrp = obj.userData.botGroup;
-                const dmgMult = obj.userData.isHead ? 2.5 : 1.0;
-                bGrp.hp -= w.dmg * dmgMult;
-                spawnBlood(hit.point);
-                showHitMarker(obj.userData.isHead ? '#ffaa00' : '#ffffff');
-                
-                if(bGrp.hp <= 0) killBot(bGrp);
-            }
-        }
-        spawnTracer(muzzlePos, endPos, 0xffffaa);
-    } else if (w.type === 'melee') {
-        curGrp.rotation.x -= 0.5; // swing anim
-        const ray = new THREE.Raycaster(startPos, dir, 0, w.range);
-        const hits = ray.intersectObjects(hittableTargets, false);
-        if(hits.length > 0) {
-            const bGrp = hits[0].object.userData.botGroup;
-            bGrp.hp -= w.dmg; spawnBlood(hits[0].point); showHitMarker('#ffffff');
-            if(bGrp.hp <= 0) killBot(bGrp);
-        }
-    }
+
 }
 
 const activeNades = [];
@@ -563,6 +534,7 @@ function showHitMarker(color) {
     const hm = document.getElementById('hit-marker');
     hm.querySelectorAll('.hm-line').forEach(l => l.style.background = color);
     hm.style.display = 'block'; setTimeout(() => hm.style.display = 'none', 150);
+    hm.style.fontSize = "40px";
 }
 
 /** --- INPUTS --- */
