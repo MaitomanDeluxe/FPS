@@ -353,8 +353,13 @@ arGroup.add(
  arRearRight,
  arFront
 );
-arGroup.idlePos = new THREE.Vector3(0.18, -0.18, -0.35);
-arGroup.adsPos = new THREE.Vector3(0, -0.02, -0.15);
+arGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.3);
+arGroup.adsPos = new THREE.Vector3(0.2, -0.25, -0.45);
+arGroup.position.x += Math.sin(Date.now()*0.002)*0.002;
+arGroup.position.y += Math.cos(Date.now()*0.002)*0.002;
+
+arGroup.rotation.y = -0.2;
+arGroup.rotation.x = -0.05;
 
 // 2. Handgun
 const hgGroup = new THREE.Group();
