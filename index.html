@@ -318,9 +318,40 @@ const arHand = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.25), gunAccMat
 const arBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.3), gunMat); arBarrel.rotation.x=Math.PI/2; arBarrel.position.set(0,0.03,-0.4);
 const arMag = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.15, 0.06), gunAccMat); arMag.position.set(0,-0.1, -0.05); arMag.rotation.x = -0.1;
 // アイアンサイト(見やすく修正)
-const arRear = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.01), gunAccMat); arRear.position.set(0, 0.075, 0.05);
-const arFront = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.04, 0.01), gunAccMat); arFront.position.set(0, 0.075, -0.35);
-arGroup.add(arRec, arHand, arBarrel, arMag, arRear, arFront);
+
+const arRearBase = new THREE.Mesh(
+ new THREE.BoxGeometry(0.04, 0.02, 0.02),
+ gunAccMat
+);
+arRearBase.position.set(0, 0.075, 0.05);
+
+const arRearLeft = new THREE.Mesh(
+ new THREE.BoxGeometry(0.01, 0.03, 0.01),
+ gunAccMat
+);
+arRearLeft.position.set(-0.012, 0.085, 0.05);
+
+const arRearRight = new THREE.Mesh(
+ new THREE.BoxGeometry(0.01, 0.03, 0.01),
+ gunAccMat
+);
+arRearRight.position.set(0.012, 0.085, 0.05);
+
+    const arFront = new THREE.Mesh(
+ new THREE.BoxGeometry(0.004, 0.035, 0.004),
+ gunAccMat
+);
+arFront.position.set(0, 0.085, -0.38);
+arGroup.add(
+ arRec,
+ arHand,
+ arBarrel,
+ arMag,
+ arRearBase,
+ arRearLeft,
+ arRearRight,
+ arFront
+);
 arGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.3); arGroup.adsPos = new THREE.Vector3(0, -0.06, -0.2); // ADS中心合わせ
 
 // 2. Handgun
