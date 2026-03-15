@@ -3,288 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Warzone V8.0 - Full Feature & Aimware</title>
+    <title>Tactical Warzone V9.0 - The Original Remastered</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-        :root { --p: #00ffcc; --a: #ff3333; --bg: rgba(10, 10, 10, 0.95); --border: 1px solid #444; }
+        :root { --p: #00ffcc; --a: #ff3333; --bg: rgba(5, 5, 5, 0.9); --glass: rgba(255, 255, 255, 0.1); }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Share Tech Mono', monospace; color: #fff; user-select: none; }
-        #game-canvas { position: absolute; inset: 0; }
         
-        /* --- UI LAYER --- */
-        .overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; display: none; }
+        #game-canvas { position: absolute; inset: 0; z-index: 1; }
         
-        /* HUD Top */
-        #hud-top { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; background: var(--bg); padding: 10px 30px; border: var(--border); border-radius: 5px; font-size: 1.2rem; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .stat-label { color: #888; font-size: 0.8rem; display: block; }
-
-        /* Crosshair Custom */
-        #crosshair-wrap { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
-        #ch-dot { width: 4px; height: 4px; background: #fff; border-radius: 50%; box-shadow: 0 0 5px #000; }
-        .ch-bar { position: absolute; background: #fff; box-shadow: 0 0 3px #000; transition: transform 0.1s; }
-        .ch-v { width: 2px; height: 14px; } .ch-h { width: 14px; height: 2px; }
-
-        /* Progress Circle (Reload/Heal) */
-        #circle-prog { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; opacity: 0; }
-        #circle-prog svg { transform: rotate(-90deg); }
-        #circle-prog circle { fill: none; stroke: var(--p); stroke-width: 4; stroke-dasharray: 126; stroke-dashoffset: 126; }
-
-        /* HP & Stance */
-        #hud-bottom-left { position: absolute; bottom: 30px; left: 30px; width: 220px; background: var(--bg); padding: 15px; border: var(--border); border-radius: 4px; }
-        .hp-bar-outer { width: 100%; height: 8px; background: #222; margin-top: 10px; border: 1px solid #333; }
-        #hp-bar-inner { width: 100%; height: 100%; background: linear-gradient(90deg, #0f4, #0a0); transition: width 0.3s; }
-        #stance-indicator { font-size: 0.8rem; color: var(--p); margin-top: 5px; }
-
-        /* Hotbar */
-        #hotbar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; pointer-events: auto; }
-        .slot { width: 60px; height: 65px; background: var(--bg); border: var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; transition: 0.3s; position: relative; }
-        .slot.active { opacity: 1; border-color: var(--p); transform: translateY(-10px); box-shadow: 0 5px 15px rgba(0,255,204,0.3); }
-        .slot .key { position: absolute; top: 2px; left: 4px; font-size: 0.6rem; color: #888; }
-        .slot .ammo { font-size: 0.7rem; margin-top: 2px; }
-
-        /* Damage Direction */
-        #damage-ring { position: absolute; inset: 0; pointer-events: none; }
-        .dmg-arc { position: absolute; top: 50%; left: 50%; width: 300px; height: 300px; border: 10px solid transparent; border-top-color: var(--a); border-radius: 50%; transform: translate(-50%, -50%); opacity: 0; }
-
-        /* MOD MENU */
-        #mod-gui { position: absolute; top: 80px; right: 20px; width: 240px; background: var(--bg); border: 1px solid var(--p); padding: 15px; display: none; pointer-events: auto; box-shadow: 0 0 20px #000; }
-        #mod-gui h3 { margin: 0 0 10px 0; font-size: 1rem; color: var(--p); text-align: center; border-bottom: 1px solid #333; }
-        .mod-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem; }
+        /* HUD UI */
+        .ui-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; display: none; }
         
-        /* Titles & Screens */
-        .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #050505; z-index: 100; }
-        #ver-info { margin-top: 10px; color: #444; cursor: pointer; transition: 0.2s; }
-        #ver-info:hover { color: #888; }
-        .deploy-btn { padding: 15px 50px; background: var(--p); color: #000; font-weight: bold; border: none; font-size: 1.2rem; cursor: pointer; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+        /* Top HUD */
+        #hud-header { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; background: var(--bg); padding: 8px 30px; border: 1px solid #444; border-radius: 4px; box-shadow: 0 5px 15px #000; }
+        .hud-label { font-size: 0.7rem; color: #888; display: block; margin-bottom: 2px; }
+        .hud-val { font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; }
 
-        /* Controls */
-        .btn-act { position: absolute; pointer-events: auto; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        #btn-fire { bottom: 120px; right: 40px; width: 100px; height: 100px; border-color: var(--a); color: var(--a); font-size: 1.2rem; }
-        #btn-ads { bottom: 240px; right: 50px; width: 70px; height: 70px; }
-        #btn-pose { bottom: 40px; right: 160px; width: 70px; height: 70px; }
-        #btn-nvg { top: 20px; left: 20px; width: 80px; height: 40px; border-radius: 4px; font-size: 0.7rem; }
+        /* Dynamic Crosshair */
+        #crosshair-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; }
+        #ch-dot { width: 4px; height: 4px; background: #fff; border-radius: 50%; box-shadow: 0 0 4px #000; }
+        .ch-line { position: absolute; background: #fff; box-shadow: 0 0 2px #000; transition: transform 0.05s ease-out; }
+        .ch-v { width: 2px; height: 12px; } .ch-h { width: 12px; height: 2px; }
+
+        /* Loading / Progress Bar (Circular) */
+        #circular-loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; opacity: 0; transition: opacity 0.2s; }
+        #circular-loader svg { transform: rotate(-90deg); }
+        #circular-loader circle { fill: none; stroke: var(--p); stroke-width: 4; stroke-dasharray: 188; stroke-dashoffset: 188; stroke-linecap: round; }
+
+        /* Bottom Left HUD (Stats) */
+        #hud-bottom-left { position: absolute; bottom: 25px; left: 25px; width: 240px; background: var(--bg); padding: 15px; border-left: 4px solid var(--p); }
+        .hp-outer { width: 100%; height: 6px; background: #222; margin-top: 8px; position: relative; }
+        #hp-inner { width: 100%; height: 100%; background: linear-gradient(90deg, #00ff88, var(--p)); transition: width 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        #stance-txt { font-size: 0.7rem; color: var(--p); margin-top: 8px; font-weight: bold; text-transform: uppercase; }
+
+        /* Inventory / Hotbar */
+        #hotbar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; }
+        .slot { width: 55px; height: 65px; background: var(--bg); border: 1px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; position: relative; opacity: 0.6; }
+        .slot.active { opacity: 1; border-color: var(--p); transform: translateY(-10px); box-shadow: 0 5px 20px rgba(0,255,204,0.3); }
+        .slot-key { position: absolute; top: 2px; left: 4px; font-size: 0.6rem; color: #666; }
+        .slot-icon { font-size: 1.4rem; margin-bottom: 2px; }
+        .slot-ammo { font-size: 0.65rem; color: #aaa; }
+
+        /* Damage/Hit Effects */
+        #dmg-vignette { position: absolute; inset: 0; box-shadow: inset 0 0 100px rgba(255,0,0,0); transition: box-shadow 0.2s; pointer-events: none; }
+        #hit-direction { position: absolute; top: 50%; left: 50%; width: 300px; height: 300px; border: 12px solid transparent; border-top-color: var(--a); border-radius: 50%; transform: translate(-50%, -50%); opacity: 0; }
+
+        /* NVG Overlay */
+        #nvg-overlay { position: absolute; inset: 0; background: rgba(0, 255, 50, 0.1); backdrop-filter: brightness(2.8) contrast(1.4) sepia(1) hue-rotate(80deg); display: none; pointer-events: none; box-shadow: inset 0 0 200px rgba(0,50,0,0.5); }
+        #nvg-overlay::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.05) 3px); }
+
+        /* Screens */
+        .screen { position: absolute; inset: 0; background: #050505; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.5s; }
+        .btn-main { padding: 15px 60px; background: var(--p); border: none; color: #000; font-weight: bold; font-size: 1.2rem; cursor: pointer; border-radius: 4px; transition: 0.2s; }
+        .btn-main:hover { transform: scale(1.05); filter: brightness(1.2); }
+        #version-info { margin-top: 15px; color: #333; cursor: pointer; font-size: 0.8rem; }
+
+        /* Mod Manager GUI */
+        #mod-panel { position: absolute; top: 80px; right: 20px; width: 260px; background: var(--bg); border: 1px solid var(--p); padding: 15px; display: none; pointer-events: auto; }
+        #mod-panel h3 { margin: 0 0 10px 0; font-size: 1rem; color: var(--p); text-align: center; border-bottom: 1px solid #333; }
+        .mod-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.8rem; }
+        
+        /* Mobile Controls */
+        .act-btn { position: absolute; pointer-events: auto; background: var(--glass); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; backdrop-filter: blur(4px); }
+        #fire-btn { bottom: 120px; right: 40px; width: 100px; height: 100px; border-color: var(--a); color: var(--a); }
+        #ads-btn { bottom: 240px; right: 50px; width: 75px; height: 75px; font-size: 0.8rem; }
+        #pose-btn { bottom: 40px; right: 160px; width: 75px; height: 75px; font-size: 0.8rem; }
+        #nvg-btn { top: 20px; left: 20px; width: 90px; height: 45px; border-radius: 5px; font-size: 0.7rem; border: 1px solid #fff; }
+
+        /* Code Editor */
+        #mod-console { position: fixed; inset: 5%; background: #000; border: 2px solid var(--p); z-index: 1000; display: none; flex-direction: column; padding: 20px; }
+        #code-input { flex: 1; background: #050505; color: #0f0; border: 1px solid #333; padding: 15px; font-family: 'Courier New', monospace; outline: none; }
     </style>
 </head>
 <body>
 
 <canvas id="game-canvas"></canvas>
+<div id="nvg-overlay"></div>
 
-<div id="game-hud" class="overlay">
-    <div id="hud-top">
-        <div><span class="stat-label">SCORE</span><span id="val-score">00000</span></div>
-        <div><span class="stat-label">MISSION TIME</span><span id="val-timer">05:00</span></div>
-        <div><span class="stat-label">HOSTILES</span><span id="val-enemy">10</span></div>
+<div id="game-hud" class="ui-overlay">
+    <div id="dmg-vignette"></div>
+    <div id="hit-direction"></div>
+
+    <div id="hud-header">
+        <div><span class="hud-label">SCORE</span><span id="val-score" class="hud-val">00000</span></div>
+        <div><span class="hud-label">TIME</span><span id="val-timer" class="hud-val">05:00</span></div>
+        <div><span class="hud-label">HOSTILES</span><span id="val-enemy" class="hud-val">10</span></div>
     </div>
 
-    <div id="crosshair-wrap">
+    <div id="crosshair-container">
         <div id="ch-dot"></div>
-        <div id="ch-t" class="ch-bar ch-v" style="transform: translateY(-20px);"></div>
-        <div id="ch-b" class="ch-bar ch-v" style="transform: translateY(20px);"></div>
-        <div id="ch-l" class="ch-bar ch-h" style="transform: translateX(-20px);"></div>
-        <div id="ch-r" class="ch-bar ch-h" style="transform: translateX(20px);"></div>
+        <div id="ch-t" class="ch-line ch-v" style="transform: translateY(-20px);"></div>
+        <div id="ch-b" class="ch-line ch-v" style="transform: translateY(20px);"></div>
+        <div id="ch-l" class="ch-line ch-h" style="transform: translateX(-20px);"></div>
+        <div id="ch-r" class="ch-line ch-h" style="transform: translateX(20px);"></div>
     </div>
 
-    <div id="circle-prog">
-        <svg width="60" height="60"><circle cx="30" cy="30" r="20" id="prog-fill"></circle></svg>
+    <div id="circular-loader">
+        <svg width="70" height="70"><circle cx="35" cy="35" r="30" id="circle-fill"></circle></svg>
     </div>
-
-    <div id="damage-ring"><div class="dmg-arc" id="dmg-arc"></div></div>
 
     <div id="hud-bottom-left">
-        <div style="display:flex; justify-content:space-between;">
-            <span>VITAL SIGNS</span> <span id="val-hp">100</span>
+        <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+            <span>OPERATOR STATE</span> <span id="val-hp">100%</span>
         </div>
-        <div class="hp-bar-outer"><div id="hp-bar-inner"></div></div>
-        <div id="stance-indicator">STANCE: STANDING</div>
+        <div class="hp-outer"><div id="hp-inner"></div></div>
+        <div id="stance-txt">STANCE: STANDING</div>
     </div>
 
     <div id="hotbar">
-        <div class="slot active" data-id="0"><span class="key">1</span><span>🔫</span><div class="ammo" id="am-0">30/120</div></div>
-        <div class="slot" data-id="1"><span class="key">2</span><span>🔫</span><div class="ammo" id="am-1">15/60</div></div>
-        <div class="slot" data-id="2"><span class="key">3</span><span>🔪</span><div class="ammo">-</div></div>
-        <div class="slot" data-id="3"><span class="key">4</span><span>💣</span><div class="ammo" id="am-3">1/4</div></div>
-        <div class="slot" data-id="4"><span class="key">5</span><span>💊</span><div class="ammo" id="am-4">1/2</div></div>
+        <div class="slot active" data-id="0"><span class="slot-key">1</span><span class="slot-icon">🔫</span><div class="slot-ammo" id="ammo-0">30/120</div></div>
+        <div class="slot" data-id="1"><span class="slot-key">2</span><span class="slot-icon">🔫</span><div class="slot-ammo" id="ammo-1">15/60</div></div>
+        <div class="slot" data-id="2"><span class="slot-key">3</span><span class="slot-icon">🔪</span><div class="slot-ammo">-</div></div>
+        <div class="slot" data-id="3"><span class="slot-key">4</span><span class="slot-icon">💣</span><div class="slot-ammo" id="ammo-3">1/3</div></div>
+        <div class="slot" data-id="4"><span class="slot-key">5</span><span class="slot-icon">💊</span><div class="slot-ammo" id="ammo-4">1/2</div></div>
     </div>
 
-    <div id="mod-gui">
-        <h3>AIMWARE CONFIG ⓘ</h3>
-        <div class="mod-row">Aimbot (Silent) <input type="checkbox" id="mod-aim"></div>
-        <div class="mod-row">ESP Box <input type="checkbox" id="mod-esp-box"></div>
-        <div class="mod-row">ESP Tracer <input type="checkbox" id="mod-esp-line"></div>
-        <div class="mod-row">No Recoil <input type="checkbox" id="mod-recoil"></div>
-        <div class="mod-row">Infinite Ammo <input type="checkbox" id="mod-inf"></div>
-        <button id="btn-js" style="width:100%; background:#222; color:var(--p); border:1px solid var(--p); margin-top:5px; cursor:pointer;">OPEN JS CONSOLE</button>
-    </div>
+    <div id="fire-btn" class="act-btn">FIRE</div>
+    <div id="ads-btn" class="act-btn">ADS</div>
+    <div id="pose-btn" class="act-btn">POSE</div>
+    <div id="nvg-btn" class="act-btn">NVG:OFF</div>
 
-    <div id="btn-fire" class="btn-act">FIRE</div>
-    <div id="btn-ads" class="btn-act">ADS</div>
-    <div id="btn-pose" class="btn-act">POSE</div>
-    <div id="btn-nvg" class="btn-act">NVG:OFF</div>
+    <div id="mod-panel">
+        <h3>MOD FRAMEWORK V1</h3>
+        <div class="mod-row">Script Active <input type="checkbox" id="mod-active"></div>
+        <button id="btn-open-console" style="width:100%; background:#222; color:var(--p); border:1px solid var(--p); padding:5px; cursor:pointer;">OPEN JS CONSOLE</button>
+        <p style="font-size:0.6rem; color:#666; margin-top:5px;">Use DX_API to modify game state.</p>
+    </div>
 </div>
 
 <div id="title-screen" class="screen">
-    <h1 style="letter-spacing:10px; color:var(--p); margin:0;">WARZONE V8</h1>
-    <p id="ver-info">v8.1.0-stable ⓘ</p>
+    <h1 style="letter-spacing:15px; color:var(--p); margin:0;">WARZONE V9</h1>
+    <p id="version-info">v9.0.1-stable ⓘ</p>
     
-    <div style="margin:40px; background:rgba(255,255,255,0.05); padding:20px; border:var(--border); width:300px;">
-        <div class="mod-row">DEPLOYMENT: 
-            <select id="sel-map" style="background:#000; color:#fff;"><option value="day">DAY OPERATION</option><option value="night">NIGHT INFIL</option></select>
-        </div>
-        <div class="mod-row">HOSTILES:
-            <select id="sel-bot" style="background:#000; color:#fff;"><option value="10">10 UNITS</option><option value="30">30 UNITS</option><option value="99">ALL-OUT WAR</option></select>
-        </div>
+    <div style="margin:40px; padding:20px; background:rgba(255,255,255,0.05); border:1px solid #333; width:280px;">
+        <div class="mod-row">MAP: <select id="sel-map" style="background:#000; color:#fff;"><option value="day">DAY OPERATION</option><option value="night">NIGHT OPS</option></select></div>
+        <div class="mod-row">AI UNITS: <select id="sel-bot" style="background:#000; color:#fff;"><option value="10">10 BOTS</option><option value="30">30 BOTS</option></select></div>
     </div>
 
-    <button class="deploy-btn" id="btn-deploy">START OPERATION</button>
+    <button class="btn-main" id="btn-deploy">DEPLOY</button>
 </div>
 
-<div id="js-console" style="position:fixed; inset:10%; background:#000; border:2px solid var(--p); z-index:1000; display:none; flex-direction:column; padding:20px;">
-    <h3 style="margin:0 0 10px 0;">JS EXECUTOR</h3>
-    <textarea id="js-code" style="flex:1; background:#050505; color:#0f0; border:1px solid #333; padding:10px; font-family:monospace;"></textarea>
-    <div style="display:flex; gap:10px; margin-top:10px;">
-        <button onclick="eval(document.getElementById('js-code').value)" style="flex:1; padding:10px;">RUN</button>
-        <button onclick="document.getElementById('js-console').style.display='none'" style="flex:1; padding:10px;">CLOSE</button>
+<div id="mod-console">
+    <h3 style="margin-top:0;">MOD EXECUTOR</h3>
+    <textarea id="code-input" placeholder="// Write your JS here... Example: DX_API.player.hp = 999;"></textarea>
+    <div style="display:flex; gap:10px; margin-top:15px;">
+        <button onclick="executeMod()" style="flex:1; padding:10px; background:var(--p); border:none; color:#000; font-weight:bold;">EXECUTE CODE</button>
+        <button onclick="document.getElementById('mod-console').style.display='none'" style="flex:1; padding:10px; background:#444; border:none; color:#fff;">CLOSE</button>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-/** --- CORE ENGINE --- */
+/** --- GLOBAL DX_API FRAMEWORK --- */
+window.DX_API = {
+    player: { hp: 100, score: 0, pos: null, stance: 'stand', isADS: false },
+    world: { time: 300, bots: [], gravity: -9.8 },
+    weapons: [],
+    hooks: {
+        onTick: () => {},
+        onShoot: () => {},
+        onHit: (dmg) => {},
+        onEnemySpawn: (bot) => {}
+    }
+};
+
+/** --- GAME CORE ENGINE --- */
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.01, 1000);
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('game-canvas'), antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(window.devicePixelRatio);
 
-const player = new THREE.Group(); scene.add(player);
-player.add(camera); player.position.set(0, 1.7, 0);
+const playerRig = new THREE.Group(); scene.add(playerRig);
+playerRig.add(camera); playerRig.position.set(0, 1.7, 0);
+DX_API.player.pos = playerRig.position;
 
-let isPlaying = false, isNight = false, playerHP = 100, score = 0, enemiesRemaining = 10;
-let yaw = 0, pitch = 0, moveSpeed = 0.15, isADS = false, stance = 'stand';
-let spread = 0, targetSpread = 0, recoilY = 0;
+let isPlaying = false, isReloading = false, lastFire = 0;
+let yaw = 0, pitch = 0, recoilY = 0;
+let moveData = { x:0, y:0, id:null }, lookData = { lx:0, ly:0, id:null };
 
-/** --- WEAPONS SYSTEM --- */
+/** --- WEAPON SYSTEM --- */
 const weapons = [
-    { name:"MCX", mag:30, cur:30, res:120, rate:100, dmg:32, reload:2200, type:'ar' },
-    { name:"P320", mag:17, cur:17, res:51, rate:180, dmg:22, reload:1400, type:'hg' },
+    { name:"MCX", mag:30, cur:30, res:120, rate:100, dmg:35, reload:2200, type:'ar' },
+    { name:"M17", mag:17, cur:17, res:60, rate:180, dmg:20, reload:1400, type:'hg' },
     { name:"KNIFE", mag:0, cur:0, res:0, rate:400, dmg:100, reload:0, type:'melee' },
-    { name:"M67", mag:1, cur:1, res:4, rate:1500, dmg:250, reload:3000, type:'nade' },
+    { name:"GRENADE", mag:1, cur:1, res:3, rate:1000, dmg:200, reload:3000, type:'nade' },
     { name:"IFAK", mag:1, cur:1, res:2, rate:5000, dmg:0, reload:6000, type:'med' }
 ];
-let curWep = 0, lastFire = 0, isReloading = false;
+DX_API.weapons = weapons;
+let curSlot = 0;
 
-const weaponGroups = [];
-function createWeapons() {
-    const gunMat = new THREE.MeshStandardMaterial({color: 0x151515, roughness: 0.5});
-    const ironMat = new THREE.MeshStandardMaterial({color: 0x050505});
+const weaponModels = [];
+function initWeaponModels() {
+    const gunMat = new THREE.MeshStandardMaterial({color: 0x1a1a1a, metalness: 0.5, roughness: 0.5});
+    const partMat = new THREE.MeshStandardMaterial({color: 0x111111});
 
-    // MCX Model
+    // Main AR Model (MCX)
     const mcx = new THREE.Group();
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.12, 0.4), gunMat);
-    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.35), gunMat);
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.35), partMat);
     barrel.rotation.x = Math.PI/2; barrel.position.z = -0.35;
     const mag = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.18, 0.08), gunMat);
     mag.position.set(0, -0.12, -0.1); mag.rotation.x = 0.2;
-    const sight = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.04, 0.02), ironMat);
-    sight.position.set(0, 0.08, -0.45);
+    const sight = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.04, 0.015), partMat);
+    sight.position.set(0, 0.08, -0.45); // Iron sight positioned to not hide crosshair
     mcx.add(body, barrel, mag, sight);
-    mcx.idle = new THREE.Vector3(0.28, -0.38, -0.45);
-    mcx.ads = new THREE.Vector3(0, -0.15, -0.25);
-    weaponGroups.push(mcx); camera.add(mcx);
+    mcx.idle = new THREE.Vector3(0.3, -0.4, -0.5);
+    mcx.ads = new THREE.Vector3(0, -0.18, -0.3);
+    weaponModels.push(mcx); camera.add(mcx);
 
-    // Other weapon stubs (Simplified for code length but distinct)
+    // Placeholder for others
     for(let i=1; i<5; i++){
         const g = new THREE.Group(); g.add(new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.2), gunMat));
         g.idle = new THREE.Vector3(0.25, -0.3, -0.4); g.ads = new THREE.Vector3(0, -0.1, -0.2);
-        weaponGroups.push(g); camera.add(g);
+        weaponModels.push(g); camera.add(g);
     }
-    updateWepVisual();
+    updateWeaponVisual();
 }
 
-function updateWepVisual() {
-    weaponGroups.forEach((g, i) => g.visible = (i === curWep));
-    document.querySelectorAll('.slot').forEach((s, i) => s.className = (i === curWep) ? 'slot active' : 'slot');
+function updateWeaponVisual() {
+    weaponModels.forEach((m, i) => m.visible = (i === curSlot));
+    document.querySelectorAll('.slot').forEach((s, i) => s.className = (i === curSlot) ? 'slot active' : 'slot');
 }
 
-/** --- WORLD SETUP --- */
-const bots = []; const walls = [];
-function initWorld(mapMode) {
-    isNight = (mapMode === 'night');
+/** --- WORLD & BOTS --- */
+const bots = []; const colliders = [];
+function buildMap(mode) {
+    const isNight = mode === 'night';
     if(isNight) {
         scene.background = new THREE.Color(0x000103);
         scene.fog = new THREE.FogExp2(0x000103, 0.01);
-        scene.add(new THREE.AmbientLight(0x404040, 0.1));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.05));
     } else {
         scene.background = new THREE.Color(0x87CEEB);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-        const sun = new THREE.DirectionalLight(0xffffff, 1); sun.position.set(100, 200, 100); scene.add(sun);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const sun = new THREE.DirectionalLight(0xffffff, 1); sun.position.set(50, 100, 50); scene.add(sun);
     }
-    
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshStandardMaterial({color: isNight?0x111111:0x334422}));
-    ground.rotation.x = -Math.PI/2; scene.add(ground); walls.push(ground);
 
-    for(let i=0; i<50; i++) {
-        const h = 5 + Math.random()*20;
-        const b = new THREE.Mesh(new THREE.BoxGeometry(10, h, 10), new THREE.MeshStandardMaterial({color: 0x444444}));
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshStandardMaterial({color: isNight?0x0a0a0a:0x334422}));
+    ground.rotation.x = -Math.PI/2; scene.add(ground); colliders.push(ground);
+
+    for(let i=0; i<60; i++) {
+        const h = 4 + Math.random()*15;
+        const b = new THREE.Mesh(new THREE.BoxGeometry(8, h, 8), new THREE.MeshStandardMaterial({color: 0x444444}));
         b.position.set((Math.random()-0.5)*400, h/2, (Math.random()-0.5)*400);
-        scene.add(b); walls.push(b);
+        scene.add(b); colliders.push(b);
     }
 }
 
 function spawnBot() {
-    const g = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 0.5), new THREE.MeshStandardMaterial({color: 0xff4444}));
-    body.position.y = 0.9; g.add(body);
+    const bot = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 0.4), new THREE.MeshStandardMaterial({color: 0x333333}));
+    body.position.y = 0.9; bot.add(body);
     
     // HP Bar
-    const hpB = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.1), new THREE.MeshBasicMaterial({color:0x000000})); hpB.position.y = 2.1; g.add(hpB);
-    const hpF = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.1), new THREE.MeshBasicMaterial({color:0x00ff00})); hpF.position.set(0,2.1,0.01); g.add(hpF);
+    const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.1), new THREE.MeshBasicMaterial({color: 0x000000})); hpBg.position.y = 2.1; bot.add(hpBg);
+    const hpFi = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.1), new THREE.MeshBasicMaterial({color: 0x00ff00})); hpFi.position.set(0,2.1,0.01); bot.add(hpFi);
     
-    // ESP (Aimware)
-    const box = new THREE.BoxHelper(body, 0x00ff00); box.material.depthTest = false; box.visible = false; g.add(box);
-    g.espBox = box;
-    
-    g.position.set((Math.random()-0.5)*350, 0, (Math.random()-0.5)*350);
-    g.hp = 100; g.hpFill = hpF; g.isBot = true;
-    scene.add(g); bots.push(g);
+    bot.position.set((Math.random()-0.5)*350, 0, (Math.random()-0.5)*350);
+    bot.hp = 100; bot.hpBar = hpFi; bot.isBot = true;
+    scene.add(bot); bots.push(bot); DX_API.world.bots.push(bot);
+    DX_API.hooks.onEnemySpawn(bot);
 }
 
-/** --- COMBAT LOGIC --- */
+/** --- GAME ACTIONS --- */
 function fire() {
-    const w = weapons[curWep];
-    if(Date.now() - lastFire < w.rate || isReloading) return;
+    if(!isPlaying || isReloading) return;
+    const w = weapons[curSlot];
+    if(Date.now() - lastFire < w.rate) return;
     if(w.cur <= 0) { if(w.res > 0) reload(); return; }
 
-    if(w.type === 'med') { startHealing(); return; }
+    if(w.type === 'med') { healAction(); return; }
 
     lastFire = Date.now();
-    if(!document.getElementById('mod-inf').checked) w.cur--;
+    w.cur--;
     
-    // Recoil
-    if(!document.getElementById('mod-recoil').checked) {
-        pitch += 0.02; recoilY = 0.05;
-    }
+    // Recoil logic
+    pitch += 0.02; recoilY = 0.05;
 
-    // Raycast
     const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
-    const s = (spread/150) * (isADS?0.1:1);
-    dir.x += (Math.random()-0.5)*s; dir.y += (Math.random()-0.5)*s;
+    const spread = (DX_API.player.isADS ? 0.005 : 0.04) * (1 + Math.abs(moveData.x) + Math.abs(moveData.y));
+    dir.x += (Math.random()-0.5) * spread; dir.y += (Math.random()-0.5) * spread;
+
     const ray = new THREE.Raycaster(camera.getWorldPosition(new THREE.Vector3()), dir.normalize());
     const hits = ray.intersectObjects(bots, true);
 
     if(hits.length > 0) {
-        const b = hits[0].object.parent;
-        b.hp -= w.dmg;
-        b.hpFill.scale.x = Math.max(0, b.hp/100);
-        if(b.hp <= 0) { score += 200; enemiesRemaining--; scene.remove(b); bots.splice(bots.indexOf(b),1); spawnBot(); }
+        const target = hits[0].object.parent;
+        if(target.isBot) {
+            target.hp -= w.dmg;
+            target.hpBar.scale.x = Math.max(0, target.hp/100);
+            if(target.hp <= 0) {
+                DX_API.player.score += 200; scene.remove(target); bots.splice(bots.indexOf(target),1); spawnBot();
+            }
+        }
     }
+    DX_API.hooks.onShoot();
     updateAmmoHUD();
 }
 
 function reload() {
-    const w = weapons[curWep];
+    const w = weapons[curSlot];
     if(isReloading || w.res <= 0 || w.cur === w.mag) return;
     isReloading = true;
-    showCircle(w.reload);
+    showCircleProgress(w.reload);
     setTimeout(() => {
         const need = w.mag - w.cur;
         const take = Math.min(need, w.res);
@@ -293,176 +315,171 @@ function reload() {
     }, w.reload);
 }
 
-function startHealing() {
-    isReloading = true; showCircle(5000);
+function healAction() {
+    isReloading = true; showCircleProgress(5000);
+    // Animation: Move weapon to center to simulate treatment
+    weaponModels[curSlot].position.set(0, -0.3, -0.3);
     setTimeout(() => {
-        playerHP = 100; isReloading = false; updateHUD();
+        DX_API.player.hp = 100; isReloading = false; updateHUD();
     }, 5000);
 }
 
-function showCircle(ms) {
-    const el = document.getElementById('circle-prog');
-    const fill = document.getElementById('prog-fill');
+function showCircleProgress(ms) {
+    const el = document.getElementById('circular-loader');
+    const fill = document.getElementById('circle-fill');
     el.style.opacity = 1;
     let start = Date.now();
     let anim = setInterval(() => {
         let p = (Date.now() - start) / ms;
-        fill.style.strokeDashoffset = 126 - (p * 126);
+        fill.style.strokeDashoffset = 188 - (p * 188);
         if(p >= 1) { clearInterval(anim); el.style.opacity = 0; }
     }, 20);
 }
 
 /** --- CONTROLS --- */
-let mv = { id: null, x:0, y:0, sx:0, sy:0 };
-let lk = { id: null, lx:0, ly:0 };
-
 window.addEventListener('touchstart', e => {
     for(let t of e.changedTouches){
-        if(t.target.closest('.slot')) { curWep = parseInt(t.target.closest('.slot').dataset.id); updateWepVisual(); return; }
-        if(t.clientX < window.innerWidth/2) { mv.id = t.identifier; mv.sx = t.clientX; mv.sy = t.clientY; }
-        else { lk.id = t.identifier; lk.lx = t.clientX; lk.ly = t.clientY; }
+        if(t.target.closest('.slot')) { curSlot = parseInt(t.target.closest('.slot').dataset.id); updateWeaponVisual(); return; }
+        if(t.clientX < window.innerWidth/2) { moveData.id = t.identifier; moveData.sx = t.clientX; moveData.sy = t.clientY; }
+        else { lookData.id = t.identifier; lookData.lx = t.clientX; lookData.ly = t.clientY; }
     }
 }, {passive:false});
 
 window.addEventListener('touchmove', e => {
     for(let t of e.changedTouches){
-        if(t.identifier === mv.id) { mv.x = (t.clientX - mv.sx)/50; mv.y = (t.clientY - mv.sy)/50; }
-        if(t.identifier === lk.id) {
-            const sens = isADS ? 0.002 : 0.005;
-            yaw -= (t.clientX - lk.lx) * sens;
-            pitch -= (t.clientY - lk.ly) * sens;
+        if(t.identifier === moveData.id) { moveData.x = (t.clientX - moveData.sx)/50; moveData.y = (t.clientY - moveData.sy)/50; }
+        if(t.identifier === lookData.id) {
+            const sens = DX_API.player.isADS ? 0.002 : 0.005;
+            yaw -= (t.clientX - lookData.lx) * sens;
+            pitch -= (t.clientY - lookData.ly) * sens;
             pitch = Math.max(-1.5, Math.min(1.5, pitch));
-            lk.lx = t.clientX; lk.ly = t.clientY;
+            lookData.lx = t.clientX; lookData.ly = t.clientY;
         }
     }
 }, {passive:false});
 
-document.getElementById('btn-fire').ontouchstart = (e) => { e.preventDefault(); fire(); };
-document.getElementById('btn-ads').ontouchstart = (e) => { e.preventDefault(); isADS = !isADS; };
-document.getElementById('btn-pose').ontouchstart = (e) => {
+document.getElementById('fire-btn').ontouchstart = (e) => { e.preventDefault(); fire(); };
+document.getElementById('ads-btn').ontouchstart = (e) => { e.preventDefault(); DX_API.player.isADS = !DX_API.player.isADS; };
+document.getElementById('pose-btn').ontouchstart = (e) => {
     e.preventDefault();
-    if(Math.abs(mv.x) > 0.5 || Math.abs(mv.y) > 0.5) { stance = 'slide'; setTimeout(()=>stance='crouch', 700); }
-    else if(stance === 'stand') stance = 'crouch';
-    else if(stance === 'crouch') stance = 'prone';
-    else stance = 'stand';
-    document.getElementById('stance-indicator').innerText = "STANCE: " + stance.toUpperCase();
+    if(Math.abs(moveData.x) > 0.5 || Math.abs(moveData.y) > 0.5) {
+        DX_API.player.stance = 'slide'; setTimeout(() => DX_API.player.stance = 'crouch', 700);
+    } else {
+        if(DX_API.player.stance === 'stand') DX_API.player.stance = 'crouch';
+        else if(DX_API.player.stance === 'crouch') DX_API.player.stance = 'prone';
+        else DX_API.player.stance = 'stand';
+    }
+    document.getElementById('stance-txt').innerText = "STANCE: " + DX_API.player.stance;
 };
 
-/** --- AIMWARE (MODS) --- */
-function runMods() {
-    const doAim = document.getElementById('mod-aim').checked;
-    const doBox = document.getElementById('mod-esp-box').checked;
-    
-    if(doAim && bots.length > 0) {
-        let nearest = null, dMin = Infinity;
-        bots.forEach(b => {
-            let d = b.position.distanceTo(player.position);
-            if(d < dMin) { dMin = d; nearest = b; }
-        });
-        if(nearest) {
-            const target = nearest.position.clone(); target.y += 1.6;
-            camera.lookAt(target);
-            const look = new THREE.Vector3(); camera.getWorldDirection(look);
-            yaw = Math.atan2(look.x, look.z); pitch = Math.asin(look.y);
-        }
-    }
-    bots.forEach(b => b.espBox.visible = doBox);
-}
-
-/** --- LOOP --- */
+/** --- MAIN GAME LOOP --- */
 function update() {
     if(!isPlaying) return;
     requestAnimationFrame(update);
 
-    // Physics
+    // Stance & Movement
     let targetH = 1.7;
-    if(stance === 'crouch') targetH = 1.0;
-    if(stance === 'prone') targetH = 0.4;
-    if(stance === 'slide') targetH = 0.8;
-    player.position.y += (targetH - player.position.y) * 0.1;
+    if(DX_API.player.stance === 'crouch') targetH = 1.0;
+    if(DX_API.player.stance === 'prone') targetH = 0.4;
+    if(DX_API.player.stance === 'slide') targetH = 0.8;
+    playerRig.position.y += (targetH - playerRig.position.y) * 0.1;
 
-    const s = (stance==='slide')?0.35:(stance==='stand'?0.15:0.06);
-    const move = new THREE.Vector3(mv.x, 0, mv.y).normalize().multiplyScalar(s).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
-    player.position.add(move);
-    player.rotation.y = yaw;
+    const speed = (DX_API.player.stance==='slide')?0.4:(DX_API.player.stance==='stand'?0.15:0.06);
+    const move = new THREE.Vector3(moveData.x, 0, moveData.y).normalize().multiplyScalar(speed).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
+    playerRig.position.add(move);
+    playerRig.rotation.y = yaw;
     camera.rotation.x = pitch;
 
-    // Crosshair
-    targetSpread = (Math.abs(mv.x) + Math.abs(mv.y)) * 30;
-    if(stance !== 'stand') targetSpread *= 0.5;
-    spread += (targetSpread - spread) * 0.1;
-    const g = 15 + spread;
-    document.getElementById('ch-t').style.transform = `translateY(${-g}px)`;
-    document.getElementById('ch-b').style.transform = `translateY(${g}px)`;
-    document.getElementById('ch-l').style.transform = `translateX(${-g}px)`;
-    document.getElementById('ch-r').style.transform = `translateX(${g}px)`;
+    // Crosshair Expansion
+    const spread = (Math.abs(moveData.x) + Math.abs(moveData.y)) * 25;
+    const gap = 15 + spread;
+    document.getElementById('ch-t').style.transform = `translateY(${-gap}px)`;
+    document.getElementById('ch-b').style.transform = `translateY(${gap}px)`;
+    document.getElementById('ch-l').style.transform = `translateX(${-gap}px)`;
+    document.getElementById('ch-r').style.transform = `translateX(${gap}px)`;
 
-    // Weapon Animation
-    const m = weaponGroups[curWep];
-    m.position.lerp(isADS ? m.ads : m.idle, 0.2);
-    m.position.y += Math.sin(Date.now()*0.005) * (mv.x+mv.y!=0?0.002:0.0005); // Breathe/Bob
+    // Weapon LERP & Breathe
+    const m = weaponModels[curSlot];
+    const targetPos = DX_API.player.isADS ? m.ads : m.idle;
+    m.position.lerp(targetPos, 0.15);
+    m.position.y += Math.sin(Date.now() * 0.002) * 0.001; // Idle breathe
 
-    // Enemy Action
+    // Bot Behavior
     bots.forEach(b => {
-        if(Math.random() < 0.005) { 
-            playerHP -= 1; updateHUD();
-            document.getElementById('dmg-arc').style.opacity = 1;
-            setTimeout(()=>document.getElementById('dmg-arc').style.opacity=0, 300);
+        b.lookAt(playerRig.position);
+        if(Math.random() < 0.005) { // Bot shoots
+            DX_API.player.hp -= 1; updateHUD();
+            document.getElementById('hit-direction').style.opacity = 1;
+            setTimeout(() => document.getElementById('hit-direction').style.opacity = 0, 300);
         }
     });
 
-    runMods();
+    // Run Hooks
+    if(document.getElementById('mod-active').checked) {
+        DX_API.hooks.onTick();
+    }
+
     updateHUD();
     renderer.render(scene, camera);
 }
 
 function updateHUD() {
-    document.getElementById('val-hp').innerText = Math.ceil(playerHP);
-    document.getElementById('hp-bar-inner').style.width = playerHP + "%";
-    document.getElementById('val-score').innerText = String(score).padStart(5, '0');
-    document.getElementById('val-enemy').innerText = enemiesRemaining;
+    document.getElementById('val-hp').innerText = Math.ceil(DX_API.player.hp) + "%";
+    document.getElementById('hp-inner').style.width = DX_API.player.hp + "%";
+    document.getElementById('val-score').innerText = String(DX_API.player.score).padStart(5, '0');
+    document.getElementById('val-enemy').innerText = bots.length;
 }
 
 function updateAmmoHUD() {
     weapons.forEach((w, i) => {
-        const el = document.getElementById('am-'+i);
+        const el = document.getElementById('ammo-'+i);
         if(el) el.innerText = w.type==='melee' ? "-" : w.cur + "/" + w.res;
     });
 }
 
-/** --- INIT --- */
-let tCount = 0;
-document.getElementById('ver-info').onclick = () => {
-    if(++tCount >= 5) {
-        document.getElementById('mod-gui').style.display = 'block';
-        document.getElementById('ver-info').innerText = "v8.1.0 [DEVELOPER]";
+/** --- INITIALIZATION --- */
+let taps = 0;
+document.getElementById('version-info').onclick = () => {
+    if(++taps >= 5) {
+        document.getElementById('mod-panel').style.display = 'block';
+        document.getElementById('version-info').innerText = "v9.0.1 [DEV_MODE]";
+        alert("DX_API MOD FRAMEWORK UNLOCKED");
     }
 };
 
 document.getElementById('btn-deploy').onclick = () => {
-    initWorld(document.getElementById('sel-map').value);
-    createWeapons();
+    buildMap(document.getElementById('sel-map').value);
+    initWeaponModels();
     const count = parseInt(document.getElementById('sel-bot').value);
-    enemiesRemaining = count;
     for(let i=0; i<count; i++) spawnBot();
-    document.getElementById('title-screen').style.display = 'none';
-    document.getElementById('game-hud').style.display = 'block';
-    isPlaying = true; update(); updateAmmoHUD();
+    document.getElementById('title-screen').style.opacity = 0;
+    setTimeout(() => {
+        document.getElementById('title-screen').style.display = 'none';
+        document.getElementById('game-hud').style.display = 'block';
+        isPlaying = true; update(); updateAmmoHUD();
+    }, 500);
 };
 
-document.getElementById('btn-js').onclick = () => document.getElementById('js-console').style.display = 'flex';
+document.getElementById('btn-open-console').onclick = () => document.getElementById('mod-console').style.display = 'flex';
 
-document.getElementById('btn-nvg').onclick = function() {
-    if(this.innerText.includes('OFF')) {
-        this.innerText = 'NVG:ON';
-        renderer.setClearColor(0x002200);
-        scene.children.forEach(c => { if(c.isLight) c.intensity *= 5; });
+function executeMod() {
+    const code = document.getElementById('code-input').value;
+    try { eval(code); alert("Mod Script Loaded!"); } catch(e) { alert("Error: " + e); }
+}
+
+document.getElementById('nvg-btn').onclick = function() {
+    const nvg = document.getElementById('nvg-overlay');
+    if(this.innerText === 'NVG:OFF') {
+        this.innerText = 'NVG:ON'; nvg.style.display = 'block';
     } else {
-        this.innerText = 'NVG:OFF';
-        renderer.setClearColor(0x000000);
-        scene.children.forEach(c => { if(c.isLight) c.intensity /= 5; });
+        this.innerText = 'NVG:OFF'; nvg.style.display = 'none';
     }
 };
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
 </script>
 </body>
 </html>
