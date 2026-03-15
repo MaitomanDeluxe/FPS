@@ -251,7 +251,7 @@ const arGroup = new THREE.Group();
 const arRec = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.3), new THREE.MeshStandardMaterial({color:0x222222}));
 const arHand = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.25), new THREE.MeshStandardMaterial({color:0x222222})); arHand.position.set(0,0.02,-0.25);
 const arBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.3), new THREE.MeshStandardMaterial({color:0x222222})); arBarrel.rotation.x=Math.PI/2; arBarrel.position.set(0,0.03,-0.4);
-const arMag = new THREE.Mesh(new THREE.BoxGeometry(0.04,0.15,0.06), new THREE.MeshStandardMaterial({color:0x222222})); arMag.position.set(0,-0.1,-0.05); arMag.rotation.x=-0.1;
+const arMag = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.15, 0.06), new THREE.MeshStandardMaterial({color:0x222222})); arMag.position.set(0,-0.1,-0.05); arMag.rotation.x=-0.1;
 const arRear = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.03,0.01), new THREE.MeshStandardMaterial({color:0x222222})); arRear.position.set(0,0.075,0.05);
 const arFront = new THREE.Mesh(new THREE.BoxGeometry(0.01,0.04,0.01), new THREE.MeshStandardMaterial({color:0x222222})); arFront.position.set(0,0.075,-0.35);
 arGroup.add(arRec, arHand, arBarrel, arMag, arRear, arFront);
@@ -473,7 +473,7 @@ function startReload() {
     const w=weapons[curWepIdx];
     if(isReloading || w.res<=0 || w.cur===w.mag || w.type==='melee' || w.type==='nade') return;
     isReloading=true; reloadStart=Date.now();
-    isADS=false; cameraFOV.target=75;
+    isADS=false; cameraFOV.target=40;
     setTimeout(()=>{
         const need=w.mag-w.cur; const take=Math.min(need,w.res);
         w.cur+=take; w.res-=take; isReloading=false; updateHUD();
@@ -769,6 +769,29 @@ window.addEventListener('resize', ()=> {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+// ここから追加： switchWeapon関数
+function switchWeapon(index) {
+  if(index < 0 || index >= weapons.length) return; // 範囲外の場合は何もしない
+
+  // 現在の武器を非表示
+  const currentGroup = weaponGroups[curWepIdx];
+  currentGroup.visible = false;
+
+  // 指定された武器のインデックスに切り替え
+  curWepIdx = index;
+
+  // 新しい武器を表示
+  const newGroup = weaponGroups[curWepIdx];
+  newGroup.visible = true;
+
+  // HUDの更新
+  updateHUD();
+
+  // ADS状態リセット
+  isADS = false;
+  cameraFOV.target = 75;
+}
 </script>
 </body>
 </html>
