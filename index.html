@@ -296,8 +296,49 @@ const arMag = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.15, 0.06), gunAccMat)
 // アイアンサイト(見やすく修正)
 const arRear = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.01), gunAccMat); arRear.position.set(0, 0.075, 0.05);
 const arFront = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.04, 0.01), gunAccMat); arFront.position.set(0, 0.075, -0.35);
-arGroup.add(arRec, arHand, arBarrel, arMag, arRear, arFront);
-arGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.3); arGroup.adsPos = new THREE.Vector3(0, -0.06, -0.2); // ADS中心合わせ
+
+　// レッドドットサイト本体
+const arSightBody = new THREE.Mesh(
+ new THREE.BoxGeometry(0.06, 0.04, 0.05),
+ gunAccMat
+);
+arSightBody.position.set(0, 0.095, -0.1);
+
+    const arSightMount = new THREE.Mesh(
+ new THREE.BoxGeometry(0.03, 0.02, 0.03),
+ gunAccMat
+);
+arSightMount.position.set(0, 0.085, -0.1);
+
+    const arSightGlass = new THREE.Mesh(
+ new THREE.PlaneGeometry(0.04, 0.025),
+ new THREE.MeshStandardMaterial({
+  color:0x223344,
+  transparent:true,
+  opacity:0.5
+ })
+);
+arSightGlass.position.set(0, 0.095, -0.125);
+
+    const arRedDot = new THREE.Mesh(
+ new THREE.SphereGeometry(0.004),
+ new THREE.MeshBasicMaterial({color:0xff0000})
+);
+arRedDot.position.set(0, 0.095, -0.13);
+    
+arGroup.add(
+ arRec,
+ arHand,
+ arBarrel,
+ arMag,
+ arRear,
+ arFront,
+ arSightMount,
+ arSightBody,
+ arSightGlass,
+ arRedDot
+);
+arGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.3); arGroup.adsPos = new THREE.Vector3(0, -0.05, -0.15); // ADS中心合わせ
 
 // 2. Handgun
 const hgGroup = new THREE.Group();
