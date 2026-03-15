@@ -394,8 +394,10 @@ function tryShoot() {
     if(now - (w.lastF || 0) < w.rate) return;
     w.lastF = now; if(w.type !== 'melee') w.cur--; updateHUD();
 
-    const curGrp = weaponGroups[curWepIdx];
-    curGrp.position.z += 0.05; pitch += isADS ? 0.005 : 0.01;
+    const curGrp = weaponGroups[curWepIdx];curGrp.position.z += 0.05;
+
+// 反動を追加
+recoil += isADS ? 0.01 : 0.02;;
 
     const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
     const startPos = camera.getWorldPosition(new THREE.Vector3());
@@ -503,6 +505,9 @@ function showHitMarker(color) {
 
 /** --- INPUTS --- */
 let yaw=0, pitch=0, vy=0, isGrounded=true;
+
+let recoil = 0;
+    
 const moveCtrl = { id:null, dx:0, dy:0 };
 const lookCtrl = { id:null, lx:0, ly:0 }; // For general looking OR shooting+looking
 
@@ -600,6 +605,12 @@ function update() {
     if(!isPlaying) return; requestAnimationFrame(update);
 
     playerRig.rotation.y = yaw; camera.rotation.x = pitch;
+
+    // 反動処理
+if(recoil > 0){
+    pitch -= recoil;   // カメラ上に跳ねる
+    recoil *= 0.85;    // だんだん元に戻る
+}
 
     // Movement
     if(moveCtrl.id) {
