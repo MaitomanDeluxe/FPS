@@ -296,49 +296,8 @@ const arMag = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.15, 0.06), gunAccMat)
 // アイアンサイト(見やすく修正)
 const arRear = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.01), gunAccMat); arRear.position.set(0, 0.075, 0.05);
 const arFront = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.04, 0.01), gunAccMat); arFront.position.set(0, 0.075, -0.35);
-
-　// レッドドットサイト本体
-const arSightBody = new THREE.Mesh(
- new THREE.BoxGeometry(0.06, 0.04, 0.05),
- gunAccMat
-);
-arSightBody.position.set(0, 0.095, -0.1);
-
-    const arSightMount = new THREE.Mesh(
- new THREE.BoxGeometry(0.03, 0.02, 0.03),
- gunAccMat
-);
-arSightMount.position.set(0, 0.085, -0.1);
-
-    const arSightGlass = new THREE.Mesh(
- new THREE.PlaneGeometry(0.04, 0.025),
- new THREE.MeshStandardMaterial({
-  color:0x223344,
-  transparent:true,
-  opacity:0.5
- })
-);
-arSightGlass.position.set(0, 0.095, -0.125);
-
-    const arRedDot = new THREE.Mesh(
- new THREE.SphereGeometry(0.004),
- new THREE.MeshBasicMaterial({color:0xff0000})
-);
-arRedDot.position.set(0, 0.095, -0.13);
-    
-arGroup.add(
- arRec,
- arHand,
- arBarrel,
- arMag,
- arRear,
- arFront,
- arSightMount,
- arSightBody,
- arSightGlass,
- arRedDot
-);
-arGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.3); arGroup.adsPos = new THREE.Vector3(0, -0.05, -0.15); // ADS中心合わせ
+arGroup.add(arRec, arHand, arBarrel, arMag, arRear, arFront);
+arGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.3); arGroup.adsPos = new THREE.Vector3(0, -0.06, -0.2); // ADS中心合わせ
 
 // 2. Handgun
 const hgGroup = new THREE.Group();
@@ -398,7 +357,7 @@ function spawnTracer(start, end, colorHex) {
     tr.position.copy(start); tr.lookAt(end);
     tr.userData = { end: end.clone(), speed: 2.0, life: 10 };
     scene.add(tr); tracers.push(tr);
-}}
+}
 
 // Muzzle flash light
 const muzzleLight = new THREE.PointLight(0xffaa00, 0, 10);
@@ -453,47 +412,49 @@ function tryShoot() {
     if(now - (w.lastF || 0) < w.rate) return;
     w.lastF = now; if(w.type !== 'melee') w.cur--; updateHUD();
 
-    const curGrp = weaponGroups[curWepIdx];
-    curGrp.position.z += 0.05;
+    const curGrp = weaponGroups[curWepIdx];curGrp.position.z += 0.05;
 
 // 反動を追加
-recoil += isADS ? 0.0007 : 0.0014;
+recoil += isADS ? 0.0015 : 0.0027;;
 
     const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
     const startPos = camera.getWorldPosition(new THREE.Vector3());
 
     // 銃口位置
-const muzzlePos = weaponGroups[curWepIdx].localToWorld(new THREE.Vector3(0,0,-0.45));
+const muzzlePos = weaponGroups[curWepIdx].localToWorld(new THREE.Vector3(0,0,-0.5));
 
     if(w.type === 'ar' || w.type === 'hg') {
         flashMuzzle(true);
         // Hitscan Raycast
-const ray = new THREE.Raycaster(startPos, dir, 0, w.range);
-const allHits = ray.intersectObjects([...hittableTargets, ...envObjs], false);
-
-let endPos = startPos.clone().add(dir.multiplyScalar(50));
-
-if(allHits.length > 0){
-    const hit = allHits[0];
-    endPos = hit.point;
-
-    const obj = hit.object;
-
-    if(obj.userData && obj.userData.isBot){
-        const bGrp = obj.userData.botGroup;
-        const dmgMult = obj.userData.isHead ? 2.5 : 1.0;
-
-        bGrp.hp -= w.dmg * dmgMult;
-
-        spawnBlood(hit.point);
-        showHitMarker(obj.userData.isHead ? '#ffaa00' : '#ffffff');
-
-        if(bGrp.hp <= 0) killBot(bGrp);
+        const ray = new THREE.Raycaster(startPos, dir, 0, w.range);
+        const allHits = ray.intersectObjects([...hittableTargets, ...envObjs], false);
+        
+        let endPos = startPos.clone().add(dir.multiplyScalar(50)); // Default tracer end
+        
+        if(allHits.length > 0) {
+            const hit = allHits[0]; endPos = hit.point;
+            const obj = hit.object;
+            if(obj.userData && obj.userData.isBot) {
+                const bGrp = obj.userData.botGroup;
+                const dmgMult = obj.userData.isHead ? 2.5 : 1.0;
+                bGrp.hp -= w.dmg * dmgMult;
+                spawnBlood(hit.point);
+                showHitMarker(obj.userData.isHead ? '#ffaa00' : '#ffffff');
+                
+                if(bGrp.hp <= 0) killBot(bGrp);
+            }
+        }
+        spawnTracer(muzzlePos, endPos, 0xffffaa);
+    } else if (w.type === 'melee') {
+        curGrp.rotation.x -= 0.5; // swing anim
+        const ray = new THREE.Raycaster(startPos, dir, 0, w.range);
+        const hits = ray.intersectObjects(hittableTargets, false);
+        if(hits.length > 0) {
+            const bGrp = hits[0].object.userData.botGroup;
+            bGrp.hp -= w.dmg; spawnBlood(hits[0].point); showHitMarker('#ffffff');
+            if(bGrp.hp <= 0) killBot(bGrp);
+        }
     }
-}
-
-spawnTracer(muzzlePos, endPos, 0xffffaa);
-
 }
 
 const activeNades = [];
@@ -561,7 +522,6 @@ function showHitMarker(color) {
     const hm = document.getElementById('hit-marker');
     hm.querySelectorAll('.hm-line').forEach(l => l.style.background = color);
     hm.style.display = 'block'; setTimeout(() => hm.style.display = 'none', 150);
-    hm.style.fontSize = "40px";
 }
 
 /** --- INPUTS --- */
@@ -667,15 +627,13 @@ function update() {
 
 if(isADS){
 
- document.querySelectorAll(".ch").forEach(e=>e.style.display="none");
- document.getElementById("ch-dot").style.display="none";
- reddot.style.display="block";
+ crosshair.style.display = "none";
+ reddot.style.display = "block";
 
 }else{
 
- document.querySelectorAll(".ch").forEach(e=>e.style.display="block");
- document.getElementById("ch-dot").style.display="block";
- reddot.style.display="none";
+ crosshair.style.display = "block";
+ reddot.style.display = "none";
 
 }
 
