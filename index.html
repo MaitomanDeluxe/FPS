@@ -453,16 +453,17 @@ function tryShoot() {
     if(now - (w.lastF || 0) < w.rate) return;
     w.lastF = now; if(w.type !== 'melee') w.cur--; updateHUD();
 
-    const curGrp = weaponGroups[curWepIdx];curGrp.position.z += 0.05;
+    const curGrp = weaponGroups[curWepIdx];
+    curGrp.position.z += 0.05;
 
 // 反動を追加
-recoil += isADS ? 0.0015 : 0.0027;
+recoil += isADS ? 0.0007 : 0.0014;
 
     const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
     const startPos = camera.getWorldPosition(new THREE.Vector3());
 
     // 銃口位置
-const muzzlePos = weaponGroups[curWepIdx].localToWorld(new THREE.Vector3(0,0,-0.5));
+const muzzlePos = weaponGroups[curWepIdx].localToWorld(new THREE.Vector3(0,0,-0.45));
 
     if(w.type === 'ar' || w.type === 'hg') {
         flashMuzzle(true);
@@ -666,13 +667,15 @@ function update() {
 
 if(isADS){
 
- crosshair.style.display = "none";
- reddot.style.display = "block";
+ document.querySelectorAll(".ch").forEach(e=>e.style.display="none");
+ document.getElementById("ch-dot").style.display="none";
+ reddot.style.display="block";
 
 }else{
 
- crosshair.style.display = "block";
- reddot.style.display = "none";
+ document.querySelectorAll(".ch").forEach(e=>e.style.display="block");
+ document.getElementById("ch-dot").style.display="block";
+ reddot.style.display="none";
 
 }
 
