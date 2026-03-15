@@ -397,7 +397,7 @@ function tryShoot() {
     const curGrp = weaponGroups[curWepIdx];curGrp.position.z += 0.05;
 
 // 反動を追加
-recoil += isADS ? 0.01 : 0.02;;
+recoil += isADS ? 0.06 : 0.012;;
 
     const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
     const startPos = camera.getWorldPosition(new THREE.Vector3());
@@ -507,6 +507,7 @@ function showHitMarker(color) {
 let yaw=0, pitch=0, vy=0, isGrounded=true;
 
 let recoil = 0;
+let basePitch = 0;
     
 const moveCtrl = { id:null, dx:0, dy:0 };
 const lookCtrl = { id:null, lx:0, ly:0 }; // For general looking OR shooting+looking
@@ -604,13 +605,15 @@ document.getElementById('btn-nvg').onclick = () => {
 function update() {
     if(!isPlaying) return; requestAnimationFrame(update);
 
-    playerRig.rotation.y = yaw; camera.rotation.x = pitch;
-
-    // 反動処理
+    // 反動
 if(recoil > 0){
-    pitch -= recoil;   // カメラ上に跳ねる
-    recoil *= 0.95;    // だんだん元に戻る
+    pitch -= recoil;
+    recoil *= 0.9;
 }
+
+// カメラ回転
+playerRig.rotation.y = yaw;
+camera.rotation.x = pitch;
 
     // Movement
     if(moveCtrl.id) {
