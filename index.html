@@ -402,6 +402,9 @@ recoil += isADS ? 0.0015 : 0.0027;;
     const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
     const startPos = camera.getWorldPosition(new THREE.Vector3());
 
+    // 銃口位置
+const muzzlePos = weaponGroups[curWepIdx].localToWorld(new THREE.Vector3(0,0,-0.5));
+
     if(w.type === 'ar' || w.type === 'hg') {
         flashMuzzle(true);
         // Hitscan Raycast
@@ -423,7 +426,7 @@ recoil += isADS ? 0.0015 : 0.0027;;
                 if(bGrp.hp <= 0) killBot(bGrp);
             }
         }
-        spawnTracer(startPos.clone().add(new THREE.Vector3(0,-0.1,0).applyEuler(camera.rotation)), endPos, 0xffffaa); // Player tracer yellow/white
+        spawnTracer(muzzlePos, endPos, 0xffffaa);
     } else if (w.type === 'melee') {
         curGrp.rotation.x -= 0.5; // swing anim
         const ray = new THREE.Raycaster(startPos, dir, 0, w.range);
