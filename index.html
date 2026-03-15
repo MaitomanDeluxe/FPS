@@ -397,7 +397,7 @@ function tryShoot() {
     const curGrp = weaponGroups[curWepIdx];curGrp.position.z += 0.05;
 
 // 反動を追加
-recoil += isADS ? 0.06 : 0.012;;
+recoil -= isADS ? 0.06 : 0.012;;
 
     const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
     const startPos = camera.getWorldPosition(new THREE.Vector3());
