@@ -34,9 +34,25 @@
         #minimap-canvas { width: 100%; height: 100%; }
 
         /* Crosshair & Hitmarker */
-        #crosshair-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; }
-        #crosshair { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,0.7); }
-        #crosshair::after { content: ''; position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: #0f0; transform: translate(-50%, -50%); }
+        #crosshair-container{
+ position:absolute;
+ top:50%;
+ left:50%;
+ transform:translate(-50%,-50%);
+ width:40px;
+ height:40px;
+}
+
+.ch{
+ position:absolute;
+ background:white;
+ box-shadow:0 0 3px #000;
+}
+
+#ch-top{width:2px;height:10px;left:50%;transform:translateX(-50%);top:0;}
+#ch-bottom{width:2px;height:10px;left:50%;transform:translateX(-50%);bottom:0;}
+#ch-left{height:2px;width:10px;top:50%;transform:translateY(-50%);left:0;}
+#ch-right{height:2px;width:10px;top:50%;transform:translateY(-50%);right:0;}
         #hit-marker { position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; transform: translate(-50%, -50%); display: none; }
         .hm-line { position: absolute; top: 50%; left: 50%; width: 24px; height: 2px; background: #fff; box-shadow: 0 0 2px #000; }
         .hm-line:nth-child(1) { transform: translate(-50%, -50%) rotate(45deg); }
@@ -85,7 +101,10 @@
         </div>
 
         <div id="crosshair-container">
-            <div id="crosshair"></div>
+ <div id="ch-top" class="ch"></div>
+ <div id="ch-bottom" class="ch"></div>
+ <div id="ch-left" class="ch"></div>
+ <div id="ch-right" class="ch"></div>
             <div id="hit-marker"><div class="hm-line"></div><div class="hm-line"></div></div>
         </div>
         
@@ -682,6 +701,15 @@ function update() {
         document.getElementById('timer').innerText = "ENDLESS";
     }
     drawMinimap();
+
+// crosshair spread
+const spread = moveCtrl.id ? 10 : 4;
+
+document.getElementById("ch-top").style.top = -spread+"px";
+document.getElementById("ch-bottom").style.bottom = -spread+"px";
+document.getElementById("ch-left").style.left = -spread+"px";
+document.getElementById("ch-right").style.right = -spread+"px";
+    
     renderer.render(scene, camera);
 }
 
