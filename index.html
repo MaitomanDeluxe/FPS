@@ -865,6 +865,17 @@ font-size:4rem;">K.I.A.</h1>
   };
   /** --- GAME LOOP --- */
   function update() {
+
+
+    
+// --- ここを追加！ADS時にクロスヘアを完全に消す ---
+    if (isADS) {
+        crosshair.style.display = "none";
+    } else {
+        crosshair.style.display = "block";
+    }
+    // ----------------------------------------------
+
       
       // Crosshair spread based on movement like Image 0 (reusing old spread logic)
       const spread = moveCtrl.id ? 10 : 4;
