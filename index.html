@@ -897,8 +897,9 @@ if(weapons[curWepIdx].type === 'melee' && grp.rotation.x < 0) grp.rotation.x += 
         if ( curWepIdx === 0 && isADS ) {
             const swayX = Math.sin(Date.now() * 0.002) * 0.002;
             const swayY = Math.cos(Date.now() * 0.002) * 0.002;
-            grp.children[0].position.x = tp.x + swayX;
-            grp.children[0].position.y = tp.y + swayY;
+            // ↓ ここを修正！ tp.x や tp.y の二重加算を削除します
+            grp.children[0].position.x = swayX;
+            grp.children[0].position.y = swayY;
             
             // Also update Right HUD Direction like image 0
             const compassDeg = Math.round(( yaw * ( 180 / Math.PI ) ) % 360 + 360 ) % 360;
