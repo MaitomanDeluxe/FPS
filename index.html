@@ -458,19 +458,39 @@ const flashHider = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.04)
 flashHider.rotation.x = Math.PI / 2;
 flashHider.position.set(0, 0.08, -0.42);
 
-// レッドドットサイト (画像ベースのホロサイト風、アッパーレシーバー上にマウント)
-const housingPoints = [];
+// レッドドットサイト (Shapeのholes機能を使ってフレーム状に穴あけ)
+
+// 1. 外側の枠の形状（Shape）を作成
+const outerPoints = [];
 for ( let i = 0; i <= 6; i ++ ) {
     const angle = i / 6 * Math.PI * 2;
-    housingPoints.push( new THREE.Vector2( Math.cos(angle)*0.035, Math.sin(angle)*0.035 ) );
+    outerPoints.push( new THREE.Vector2( Math.cos(angle)*0.035, Math.sin(angle)*0.035 ) );
 }
-const housingShape = new THREE.Shape(housingPoints);
-const arScopeHousing = new THREE.Mesh( new THREE.ExtrudeGeometry( housingShape, {depth: 0.06, bevelEnabled: false} ), gunAccMat );
+const housingShape = new THREE.Shape(outerPoints);
+
+// 2. 内側の穴の形状（Path）を作成し、Shapeのholes（穴）に追加
+const holePath = new THREE.Path();
+const innerPoints = [];
+for ( let i = 0; i <= 6; i ++ ) {
+    const angle = i / 6 * Math.PI * 2;
+    // 外側より少し半径を小さくして、フレームの「厚み」を作る
+    innerPoints.push( new THREE.Vector2( Math.cos(angle)*0.030, Math.sin(angle)*0.030 ) );
+}
+holePath.setFromPoints(innerPoints);
+housingShape.holes.push(holePath); // ここで穴をあける！
+
+// 3. 穴あきのShapeを押し出して立体（フレーム）にする
+const arScopeHousing = new THREE.Mesh( 
+    new THREE.ExtrudeGeometry( housingShape, {depth: 0.05, bevelEnabled: false} ), 
+    gunAccMat 
+);
 arScopeHousing.position.set(0, 0.125, -0.05);
 
+// 4. ドットの配置（中空のフレームの中に赤い球を浮かせる）
 const dotMat = new THREE.MeshBasicMaterial({color: 0xff0000});
-const arScopeDot = new THREE.Mesh( new THREE.SphereGeometry(0.003, 8, 8), dotMat );
-arScopeDot.position.set(0, 0.125, -0.07);
+const arScopeDot = new THREE.Mesh( new THREE.SphereGeometry(0.0015, 8, 8), dotMat );
+// ドットがフレームの奥側（画面寄り）に配置されるようZ座標を調整
+arScopeDot.position.set(0, 0.125, -0.03);
 
 // 全パーツをグループに組み込み
 arGroupParts.add(
