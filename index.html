@@ -901,6 +901,11 @@ if(weapons[curWepIdx].type === 'melee' && grp.rotation.x < 0) grp.rotation.x += 
             // ADS中の処理
             if (fsb) fsb.visible = false;       // フロントサイトを消す
             if (crosshair) crosshair.style.display = 'none'; // クロスヘアを消す
+            // クロスヘアを完全に非表示にする
+    if (crosshair) {
+        crosshair.style.opacity = "0";
+        crosshair.style.visibility = "hidden";
+    }
 
             const swayX = Math.sin(Date.now() * 0.002) * 0.002;
             const swayY = Math.cos(Date.now() * 0.002) * 0.002;
@@ -914,6 +919,11 @@ if(weapons[curWepIdx].type === 'melee' && grp.rotation.x < 0) grp.rotation.x += 
             // 非ADS中（腰だめ）の処理
             if (fsb) fsb.visible = true;        // フロントサイトを出す
             if (crosshair) crosshair.style.display = 'block'; // クロスヘアを出す
+            // クロスヘアを表示する
+    if (crosshair) {
+        crosshair.style.opacity = "1";
+        crosshair.style.visibility = "visible";
+    }
             
             grp.children[0].position.x = 0;
             grp.children[0].position.y = 0;
