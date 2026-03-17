@@ -1,6 +1,8 @@
 let scene,camera,renderer
-let player={x:0,y:1.6,z:0}
+let player={x:0,z:0}
 let others={}
+
+window.updatePlayers = updatePlayers
 
 init()
 
@@ -18,7 +20,7 @@ scene.add(light)
 
 const floor=new THREE.Mesh(
 new THREE.PlaneGeometry(100,100),
-new THREE.MeshPhongMaterial({color:0x333333})
+new THREE.MeshBasicMaterial({color:0x333333})
 )
 floor.rotation.x=-Math.PI/2
 scene.add(floor)
@@ -37,7 +39,6 @@ player.z+=joy.y*0.1
 camera.position.x=player.x
 camera.position.z=player.z
 
-// オンライン送信
 sendMove(player.x,player.z)
 
 renderer.render(scene,camera)
@@ -45,7 +46,7 @@ renderer.render(scene,camera)
 
 function updatePlayers(list){
 let panel=document.getElementById("players")
-panel.innerHTML=""
+panel.innerHTML="<b>Players</b><br>"
 
 list.forEach(p=>{
 panel.innerHTML+=p.name+"<br>"
@@ -53,7 +54,7 @@ panel.innerHTML+=p.name+"<br>"
 if(!others[p.id]){
 let mesh=new THREE.Mesh(
 new THREE.BoxGeometry(1,2,1),
-new THREE.MeshBasicMaterial({color:0x00ff00})
+new THREE.MeshBasicMaterial()
 )
 scene.add(mesh)
 others[p.id]=mesh
