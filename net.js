@@ -4,8 +4,8 @@ function startOnline(){
 
 let name=prompt("Player name")
 
-socket=new WebSocket(
-"wss://fpsgame.maitomandeluxe.workers.dev/ws"
+socket = new WebSocket(
+  "wss://fpsgame.maitomandeluxe.workers.dev/ws"
 )
 
 socket.onopen=()=>{
