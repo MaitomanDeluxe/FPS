@@ -1,325 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Mobile FPS</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <style>
+body{margin:0;overflow:hidden;background:black;}
 
-body{
-margin:0;
-overflow:hidden;
-background:black;
-font-family:sans-serif;
-touch-action:none;
-}
-
-#menu{
+#ui{
 position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-color:white;
-text-align:center;
-}
-
-button{
-padding:15px 25px;
-font-size:20px;
-margin:10px;
-}
-
-#crosshair{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-color:white;
-font-size:30px;
+width:100%;
+height:100%;
 pointer-events:none;
 }
 
 #joystick{
 position:absolute;
-bottom:80px;
+bottom:40px;
 left:40px;
 width:120px;
 height:120px;
-background:rgba(255,255,255,0.15);
 border-radius:50%;
+background:rgba(255,255,255,0.1);
+pointer-events:auto;
 }
 
 #stick{
 position:absolute;
-left:40px;
-top:40px;
-width:40px;
-height:40px;
-background:white;
+width:60px;
+height:60px;
 border-radius:50%;
+background:rgba(255,255,255,0.4);
+left:30px;
+top:30px;
 }
 
 #shoot{
 position:absolute;
 right:40px;
-bottom:80px;
-width:90px;
-height:90px;
+bottom:60px;
+width:100px;
+height:100px;
 border-radius:50%;
-background:red;
-opacity:0.8;
+background:rgba(255,0,0,0.4);
+pointer-events:auto;
 }
 
-#jump{
+#menu{
 position:absolute;
-right:150px;
-bottom:120px;
-width:70px;
-height:70px;
-border-radius:50%;
-background:blue;
-opacity:0.8;
+top:10px;
+left:10px;
+pointer-events:auto;
 }
-
 </style>
 </head>
 
 <body>
 
 <div id="menu">
-<h1>FPS GAME</h1>
-<button onclick="startGame()">START</button>
+<button onclick="startOffline()">OFFLINE</button>
+<button onclick="startOnline()">ONLINE</button>
 </div>
 
-<div id="crosshair">+</div>
+<div id="ui">
 
 <div id="joystick">
 <div id="stick"></div>
 </div>
 
 <div id="shoot"></div>
-<div id="jump"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+</div>
 
-<script>
-
-let scene,camera,renderer;
-
-let player={
-x:0,
-y:1.6,
-z:0,
-vy:0
-};
-
-let keys={};
-
-let joystickActive=false;
-let joyX=0;
-let joyY=0;
-
-let bullets=[];
-
-function startGame(){
-
-document.getElementById("menu").style.display="none";
-
-init();
-
-}
-
-function init(){
-
-scene=new THREE.Scene();
-
-camera=new THREE.PerspectiveCamera(
-75,
-window.innerWidth/window.innerHeight,
-0.1,
-1000
-);
-
-renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth,window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-
-let light=new THREE.HemisphereLight(0xffffff,0x444444);
-scene.add(light);
-
-
-let floor=new THREE.Mesh(
-new THREE.PlaneGeometry(200,200),
-new THREE.MeshBasicMaterial({color:0x333333})
-);
-
-floor.rotation.x=-Math.PI/2;
-
-scene.add(floor);
-
-animate();
-
-}
-
-function animate(){
-
-requestAnimationFrame(animate);
-
-movePlayer();
-
-updateBullets();
-
-camera.position.set(player.x,player.y,player.z);
-
-renderer.render(scene,camera);
-
-}
-
-function movePlayer(){
-
-let speed=0.12;
-
-player.x+=joyX*speed;
-player.z+=joyY*speed;
-
-player.vy-=0.01;
-player.y+=player.vy;
-
-if(player.y<1.6){
-player.y=1.6;
-player.vy=0;
-}
-
-}
-
-function shoot(){
-
-let bullet=new THREE.Mesh(
-new THREE.SphereGeometry(0.05),
-new THREE.MeshBasicMaterial({color:0xffff00})
-);
-
-bullet.position.copy(camera.position);
-
-scene.add(bullet);
-
-let dir=new THREE.Vector3();
-camera.getWorldDirection(dir);
-
-bullet.vel=dir.multiplyScalar(1);
-
-bullets.push(bullet);
-
-}
-
-function updateBullets(){
-
-for(let b of bullets){
-
-b.position.add(b.vel);
-
-}
-
-}
-
-document.getElementById("shoot").ontouchstart=shoot;
-document.getElementById("shoot").onmousedown=shoot;
-
-
-document.getElementById("jump").ontouchstart=()=>{
-
-if(player.y<=1.61){
-
-player.vy=0.2;
-
-}
-
-};
-
-
-
-/* joystick */
-
-let stick=document.getElementById("stick");
-
-document.getElementById("joystick").addEventListener("touchstart",e=>{
-
-joystickActive=true;
-
-});
-
-document.addEventListener("touchmove",e=>{
-
-if(!joystickActive)return;
-
-let touch=e.touches[0];
-
-let rect=document.getElementById("joystick").getBoundingClientRect();
-
-let x=touch.clientX-rect.left-60;
-let y=touch.clientY-rect.top-60;
-
-let dist=Math.sqrt(x*x+y*y);
-
-if(dist>50){
-
-x*=50/dist;
-y*=50/dist;
-
-}
-
-stick.style.left=(x+40)+"px";
-stick.style.top=(y+40)+"px";
-
-joyX=x/50;
-joyY=y/50;
-
-});
-
-document.addEventListener("touchend",()=>{
-
-joystickActive=false;
-
-joyX=0;
-joyY=0;
-
-stick.style.left="40px";
-stick.style.top="40px";
-
-});
-
-
-/* look control */
-
-let lastX,lastY;
-
-document.addEventListener("touchmove",e=>{
-
-if(joystickActive)return;
-
-let t=e.touches[0];
-
-if(lastX){
-
-camera.rotation.y-= (t.clientX-lastX)*0.004;
-camera.rotation.x-= (t.clientY-lastY)*0.004;
-
-}
-
-lastX=t.clientX;
-lastY=t.clientY;
-
-});
-
-document.addEventListener("touchend",()=>{
-
-lastX=null;
-lastY=null;
-
-});
-
-</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160/build/three.min.js"></script>
+<script src="joystick.js"></script>
+<script src="net.js"></script>
+<script src="game.js"></script>
 
 </body>
 </html>
