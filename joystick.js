@@ -1,25 +1,20 @@
-let joy = {x:0,y:0}
-
-const base = document.getElementById("joystick")
-const stick = document.getElementById("stick")
-
+let joy={x:0,y:0}
 let active=false
 
-base.addEventListener("touchstart",e=>{
-active=true
-})
+const base=document.getElementById("joystick")
+const stick=document.getElementById("stick")
+
+base.addEventListener("touchstart",()=>active=true)
 
 window.addEventListener("touchend",()=>{
 active=false
-joy.x=0
-joy.y=0
+joy.x=0;joy.y=0
 stick.style.left="30px"
 stick.style.top="30px"
 })
 
 window.addEventListener("touchmove",e=>{
 if(!active)return
-
 let t=e.touches[0]
 let rect=base.getBoundingClientRect()
 
