@@ -15,6 +15,7 @@ stick.style.top="30px"
 
 window.addEventListener("touchmove",e=>{
 if(!active)return
+
 let t=e.touches[0]
 let rect=base.getBoundingClientRect()
 
