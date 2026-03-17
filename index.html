@@ -1,67 +1,325 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Warzone Online</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Mobile FPS</title>
+
+<style>
+
+body{
+margin:0;
+overflow:hidden;
+background:black;
+font-family:sans-serif;
+touch-action:none;
+}
+
+#menu{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+color:white;
+text-align:center;
+}
+
+button{
+padding:15px 25px;
+font-size:20px;
+margin:10px;
+}
+
+#crosshair{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+color:white;
+font-size:30px;
+pointer-events:none;
+}
+
+#joystick{
+position:absolute;
+bottom:80px;
+left:40px;
+width:120px;
+height:120px;
+background:rgba(255,255,255,0.15);
+border-radius:50%;
+}
+
+#stick{
+position:absolute;
+left:40px;
+top:40px;
+width:40px;
+height:40px;
+background:white;
+border-radius:50%;
+}
+
+#shoot{
+position:absolute;
+right:40px;
+bottom:80px;
+width:90px;
+height:90px;
+border-radius:50%;
+background:red;
+opacity:0.8;
+}
+
+#jump{
+position:absolute;
+right:150px;
+bottom:120px;
+width:70px;
+height:70px;
+border-radius:50%;
+background:blue;
+opacity:0.8;
+}
+
+</style>
 </head>
+
 <body>
-    <canvas id="game-canvas"></canvas>
 
-    <div id="game-hud" class="overlay">
-        <div id="top-hud">
-            <div id="weapon-name">VSS VINTOREZ</div>
-            <div id="ammo-count">10 / 20</div>
-            <div id="enemy-stats">ENEMIES: <span id="enemy-count">10</span></div>
-        </div>
-        
-        <div id="player-list-hud">
-            <h3>PLAYERS</h3>
-            <ul id="online-players"></ul>
-        </div>
+<div id="menu">
+<h1>FPS GAME</h1>
+<button onclick="startGame()">START</button>
+</div>
 
-        <div id="hp-bar-container">
-            <div id="hp-bar-fill"></div>
-            <div id="hp-text">HP: 100</div>
-        </div>
+<div id="crosshair">+</div>
 
-        <div id="crosshair">+</div>
-        <div id="hitmarker">╳</div>
-        <canvas id="minimap"></canvas>
-    </div>
+<div id="joystick">
+<div id="stick"></div>
+</div>
 
-    <div id="title-screen" class="full-screen-overlay">
-        <h1 style="color:var(--primary); font-size: 3rem; margin-bottom: 10px;">TACTICAL WARZONE</h1>
-        <div style="margin-bottom: 20px;">
-            <label>TIME: </label>
-            <select id="sel-time">
-                <option value="day">DAY</option>
-                <option value="night">NIGHT</option>
-            </select>
-            <label style="margin-left: 20px;">ENEMIES: </label>
-            <select id="sel-enemies">
-                <option value="10">10 BOTS</option>
-                <option value="30">30 BOTS</option>
-                <option value="999">ENDLESS</option>
-                <option value="0">NO BOTS</option>
-            </select>
-        </div>
-        
-        <button id="btn-deploy">DEPLOY TO COMBAT</button>
-        
-        <div style="margin-top:20px; border-top: 1px solid #444; padding-top: 20px;">
-            <input type="text" id="player-name" placeholder="Name..." maxlength="10">
-            <button id="btn-online">PLAY ONLINE</button>
-        </div>
-    </div>
+<div id="shoot"></div>
+<div id="jump"></div>
 
-    <div id="death-screen" class="full-screen-overlay" style="display:none; background:rgba(100,0,0,0.8);">
-        <h1>MISSION FAILED</h1>
-        <button onclick="location.reload()">REDEPLOY</button>
-    </div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="script.js"></script>
+<script>
+
+let scene,camera,renderer;
+
+let player={
+x:0,
+y:1.6,
+z:0,
+vy:0
+};
+
+let keys={};
+
+let joystickActive=false;
+let joyX=0;
+let joyY=0;
+
+let bullets=[];
+
+function startGame(){
+
+document.getElementById("menu").style.display="none";
+
+init();
+
+}
+
+function init(){
+
+scene=new THREE.Scene();
+
+camera=new THREE.PerspectiveCamera(
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+1000
+);
+
+renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+
+let light=new THREE.HemisphereLight(0xffffff,0x444444);
+scene.add(light);
+
+
+let floor=new THREE.Mesh(
+new THREE.PlaneGeometry(200,200),
+new THREE.MeshBasicMaterial({color:0x333333})
+);
+
+floor.rotation.x=-Math.PI/2;
+
+scene.add(floor);
+
+animate();
+
+}
+
+function animate(){
+
+requestAnimationFrame(animate);
+
+movePlayer();
+
+updateBullets();
+
+camera.position.set(player.x,player.y,player.z);
+
+renderer.render(scene,camera);
+
+}
+
+function movePlayer(){
+
+let speed=0.12;
+
+player.x+=joyX*speed;
+player.z+=joyY*speed;
+
+player.vy-=0.01;
+player.y+=player.vy;
+
+if(player.y<1.6){
+player.y=1.6;
+player.vy=0;
+}
+
+}
+
+function shoot(){
+
+let bullet=new THREE.Mesh(
+new THREE.SphereGeometry(0.05),
+new THREE.MeshBasicMaterial({color:0xffff00})
+);
+
+bullet.position.copy(camera.position);
+
+scene.add(bullet);
+
+let dir=new THREE.Vector3();
+camera.getWorldDirection(dir);
+
+bullet.vel=dir.multiplyScalar(1);
+
+bullets.push(bullet);
+
+}
+
+function updateBullets(){
+
+for(let b of bullets){
+
+b.position.add(b.vel);
+
+}
+
+}
+
+document.getElementById("shoot").ontouchstart=shoot;
+document.getElementById("shoot").onmousedown=shoot;
+
+
+document.getElementById("jump").ontouchstart=()=>{
+
+if(player.y<=1.61){
+
+player.vy=0.2;
+
+}
+
+};
+
+
+
+/* joystick */
+
+let stick=document.getElementById("stick");
+
+document.getElementById("joystick").addEventListener("touchstart",e=>{
+
+joystickActive=true;
+
+});
+
+document.addEventListener("touchmove",e=>{
+
+if(!joystickActive)return;
+
+let touch=e.touches[0];
+
+let rect=document.getElementById("joystick").getBoundingClientRect();
+
+let x=touch.clientX-rect.left-60;
+let y=touch.clientY-rect.top-60;
+
+let dist=Math.sqrt(x*x+y*y);
+
+if(dist>50){
+
+x*=50/dist;
+y*=50/dist;
+
+}
+
+stick.style.left=(x+40)+"px";
+stick.style.top=(y+40)+"px";
+
+joyX=x/50;
+joyY=y/50;
+
+});
+
+document.addEventListener("touchend",()=>{
+
+joystickActive=false;
+
+joyX=0;
+joyY=0;
+
+stick.style.left="40px";
+stick.style.top="40px";
+
+});
+
+
+/* look control */
+
+let lastX,lastY;
+
+document.addEventListener("touchmove",e=>{
+
+if(joystickActive)return;
+
+let t=e.touches[0];
+
+if(lastX){
+
+camera.rotation.y-= (t.clientX-lastX)*0.004;
+camera.rotation.x-= (t.clientY-lastY)*0.004;
+
+}
+
+lastX=t.clientX;
+lastY=t.clientY;
+
+});
+
+document.addEventListener("touchend",()=>{
+
+lastX=null;
+lastY=null;
+
+});
+
+</script>
+
 </body>
 </html>
