@@ -1,10 +1,9 @@
 let socket
-let myId=null
 let lastMove=Date.now()
 
 function startOnline(){
 
-let name=prompt("名前入力")
+let name=prompt("名前")
 document.getElementById("menu").style.display="none"
 
 socket=new WebSocket("wss://fpsgame.maitomandeluxe.workers.dev/ws")
@@ -17,21 +16,17 @@ socket.send(JSON.stringify({type:"join",name:name}))
 socket.onmessage=e=>{
 let data=JSON.parse(e.data)
 
-if(data.type==="init"){
-myId=data.id
-}
-
 if(data.type==="players"){
 updatePlayers(data.players)
 }
 
 if(data.type==="kick"){
-alert("AFKでキックされました")
+alert("1分放置でキック")
 location.reload()
 }
 }
 
-// AFK監視
+// AFKチェック
 setInterval(()=>{
 if(Date.now()-lastMove>60000){
 socket.send(JSON.stringify({type:"afk"}))
