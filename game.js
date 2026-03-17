@@ -1,48 +1,43 @@
-let scene,camera,renderer
-let player={x:0,z:0}
+const canvas=document.getElementById("game")
+const ctx=canvas.getContext("2d")
+
+canvas.width=innerWidth
+canvas.height=innerHeight
+
+let player={x:200,y:200,name:"me"}
 let others={}
 
 window.updatePlayers = updatePlayers
 
-init()
+function loop(){
+requestAnimationFrame(loop)
 
-function init(){
-scene=new THREE.Scene()
+player.x+=joy.x*3
+player.y+=joy.y*3
 
-camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000)
+sendMove(player.x,player.y)
 
-renderer=new THREE.WebGLRenderer()
-renderer.setSize(innerWidth,innerHeight)
-document.body.appendChild(renderer.domElement)
+ctx.fillStyle="black"
+ctx.fillRect(0,0,canvas.width,canvas.height)
 
-const light=new THREE.HemisphereLight(0xffffff,0x444444)
-scene.add(light)
+// 自分
+ctx.fillStyle="cyan"
+ctx.fillRect(player.x,player.y,20,20)
 
-const floor=new THREE.Mesh(
-new THREE.PlaneGeometry(100,100),
-new THREE.MeshBasicMaterial({color:0x333333})
-)
-floor.rotation.x=-Math.PI/2
-scene.add(floor)
+// 他人
+ctx.fillStyle="lime"
+for(let id in others){
+let p=others[id]
+ctx.fillRect(p.x,p.y,20,20)
 
-camera.position.y=1.6
-
-animate()
+// 名前表示
+ctx.fillStyle="white"
+ctx.fillText(p.name,p.x,p.y-5)
+ctx.fillStyle="lime"
+}
 }
 
-function animate(){
-requestAnimationFrame(animate)
-
-player.x+=joy.x*0.1
-player.z+=joy.y*0.1
-
-camera.position.x=player.x
-camera.position.z=player.z
-
-sendMove(player.x,player.z)
-
-renderer.render(scene,camera)
-}
+loop()
 
 function updatePlayers(list){
 let panel=document.getElementById("players")
@@ -51,15 +46,8 @@ panel.innerHTML="<b>Players</b><br>"
 list.forEach(p=>{
 panel.innerHTML+=p.name+"<br>"
 
-if(!others[p.id]){
-let mesh=new THREE.Mesh(
-new THREE.BoxGeometry(1,2,1),
-new THREE.MeshBasicMaterial()
-)
-scene.add(mesh)
-others[p.id]=mesh
-}
+if(p.name===player.name)return
 
-others[p.id].position.set(p.x,1,p.z)
+others[p.id]={x:p.x,y:p.y,name:p.name}
 })
 }
