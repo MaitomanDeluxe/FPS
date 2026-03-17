@@ -1,16 +1,17 @@
 let socket
 let lastMove=Date.now()
+let myName=""
 
 function startOnline(){
 
-let name=prompt("名前")
+myName=prompt("名前")
 document.getElementById("menu").style.display="none"
 
 socket=new WebSocket("wss://fpsgame.maitomandeluxe.workers.dev/ws")
 
 socket.onopen=()=>{
 document.getElementById("status").innerText="接続成功"
-socket.send(JSON.stringify({type:"join",name:name}))
+socket.send(JSON.stringify({type:"join",name:myName}))
 }
 
 socket.onmessage=e=>{
@@ -21,12 +22,11 @@ updatePlayers(data.players)
 }
 
 if(data.type==="kick"){
-alert("1分放置でキック")
+alert("AFKでキック")
 location.reload()
 }
 }
 
-// AFKチェック
 setInterval(()=>{
 if(Date.now()-lastMove>60000){
 socket.send(JSON.stringify({type:"afk"}))
@@ -34,7 +34,7 @@ socket.send(JSON.stringify({type:"afk"}))
 },5000)
 }
 
-function sendMove(x,z){
+function sendMove(x,y){
 if(!socket)return
 
 lastMove=Date.now()
@@ -42,7 +42,8 @@ lastMove=Date.now()
 socket.send(JSON.stringify({
 type:"move",
 x:x,
-z:z
+y:y,
+name:myName
 }))
 }
 
