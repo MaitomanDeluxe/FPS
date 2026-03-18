@@ -603,6 +603,42 @@
             setTimeout(()=>scene.remove(pL), 50);
         }
     }
+
+
+// グレネード専用ボタンの処理
+    const btnGrenade = document.getElementById('btn-grenade');
+    let isHoldingNade = false;
+
+    btnGrenade.ontouchstart = e => {
+        e.preventDefault();
+        // ホットバーに関わらず、グレネードのアセット（ndGroup）を取得して構える
+        const nadeWep = weapons.find(w => w.type === 'nade');
+        if(nadeWep && nadeNadeWep.cur > 0 && !isReloading) {
+            isHoldingNade = true; holdStartTime = Date.now();
+            trajLine.visible = true; impactSphere.visible = true;
+            
+            // 一時的にグレネードのモデルを表示
+            weaponGroups.forEach(g => g.visible = false);
+            ndGroup.visible = true; 
+            ndGroup.position.copy(ndGroup.adsPos); // 構える位置へ
+        }
+    };
+
+    btnGrenade.ontouchend = e => {
+        if(isHoldingNade) {
+            throwGrenade();
+            const nadeWep = weapons.find(w => w.type === 'nade');
+            nadeWep.cur--; updateHUD();
+            
+            trajLine.visible = false; impactSphere.visible = false; holdStartTime = 0; isHoldingNade = false;
+            
+            // 元の武器の表示に戻す
+            setTimeout(() => {
+                if(!isHoldingNade) switchWeapon(curWepIdx);
+            }, 500);
+        }
+    };
+    
     
     /** --- SHOOTING & GRENADE LOGIC --- */
     let isHoldingFire = false, holdStartTime = 0;
