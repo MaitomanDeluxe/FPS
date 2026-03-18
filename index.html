@@ -313,14 +313,47 @@
   mp7Group.add(mp7Body, mp7Mag, mp7ForeGrip, mp7Stock, mp7Sight);
   mp7Group.idlePos = new THREE.Vector3(0.18, -0.18, -0.35); mp7Group.adsPos = new THREE.Vector3(0, -0.035, -0.25);
 
-  // 3. AWM SNIPER
+// 3. AWM SNIPER
   const awmGroup = new THREE.Group();
+  // 全体を1.4倍に巨大化
+  awmGroup.scale.set(1.4, 1.4, 1.4);
+
   const awmBody = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.06, 0.4), new THREE.MeshStandardMaterial({color: 0x3d5c31}));
-  const awmBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.008, 0.4), gunMat); awmBarrel.rotation.x = Math.PI/2; awmBarrel.position.set(0, 0.01, -0.35);
-  const awmScope = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.18), gunAccMat); awmScope.rotation.x = Math.PI/2; awmScope.position.set(0, 0.045, -0.05);
-  const awmMag = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.06, 0.04), gunMat); awmMag.position.set(0, -0.04, 0.05);
-  awmGroup.add(awmBody, awmBarrel, awmScope, awmMag);
-  awmGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.4); awmGroup.adsPos = new THREE.Vector3(0, -0.045, -0.2);
+  const awmBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.008, 0.4), gunMat); 
+  awmBarrel.rotation.x = Math.PI/2; awmBarrel.position.set(0, 0.01, -0.35);
+  const awmMag = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.06, 0.04), gunMat); 
+  awmMag.position.set(0, -0.04, 0.05);
+
+  // --- スコープチューブ（くり抜き）の生成 ---
+  const scopeOuterPoints = [];
+  for (let i = 0; i <= 12; i++) { const angle = i / 12 * Math.PI * 2; scopeOuterPoints.push(new THREE.Vector2(Math.cos(angle)*0.015, Math.sin(angle)*0.015)); }
+  const scopeShape = new THREE.Shape(scopeOuterPoints);
+  const scopeHolePath = new THREE.Path();
+  const scopeInnerPoints = [];
+  for (let i = 0; i <= 12; i++) { const angle = i / 12 * Math.PI * 2; scopeInnerPoints.push(new THREE.Vector2(Math.cos(angle)*0.013, Math.sin(angle)*0.013)); }
+  scopeHolePath.setFromPoints(scopeInnerPoints);
+  scopeShape.holes.push(scopeHolePath);
+  
+  const awmScopeHousing = new THREE.Mesh(new THREE.ExtrudeGeometry(scopeShape, {depth: 0.18, bevelEnabled: false}), gunAccMat);
+  awmScopeHousing.position.set(0, 0.06, -0.14); // Z軸方向に伸びるため位置を調整
+
+  // --- スコープの柱（マウントリング）2つ ---
+  const mount1 = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.03, 0.01), gunAccMat); mount1.position.set(0, 0.045, -0.1);
+  const mount2 = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.03, 0.01), gunAccMat); mount2.position.set(0, 0.045, -0.02);
+
+  // --- スコープ内部の十字線（レティクル） ---
+  const reticleMat = new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.8});
+  const reticleV = new THREE.Mesh(new THREE.PlaneGeometry(0.001, 0.026), reticleMat);
+  const reticleH = new THREE.Mesh(new THREE.PlaneGeometry(0.026, 0.001), reticleMat);
+  const reticleGroup = new THREE.Group();
+  reticleGroup.add(reticleV, reticleH);
+  reticleGroup.position.set(0, 0.06, 0.03); // チューブ内の画面寄りに配置
+
+  awmGroup.add(awmBody, awmBarrel, awmScopeHousing, mount1, mount2, reticleGroup, awmMag);
+  
+  // ADS位置の調整（巨大化＆スコープの高さ0.06を加味して中心を合わせる）
+  awmGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.4); 
+  awmGroup.adsPos = new THREE.Vector3(0, -0.06 * 1.4, -0.25);
 
   // 4. Handgun
   const hgGroup = new THREE.Group();
