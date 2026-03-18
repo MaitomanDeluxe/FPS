@@ -262,9 +262,12 @@
   wallTex.repeat.set(2, 2); // 建築物のサイズに合わせてリ
   
     function createWorld(mode) {
-        scene.children.filter(c => c.userData.isEnv).forEach(c => scene.remove(c));
-        envObjs = []; mapBuildings = [];
-        const gColor = mode === 'day' ? colors.groundDay : (mode === 'night' ? colors.groundNight : colors.groundThermal);
+        // 既存の環境オブジェクトを削除
+        scene.children.filter(c => c.userData && c.userData.isEnv).forEach(c => scene.remove(c));
+        envObjs = []; 
+        mapBuildings = [];
+        
+        const gColor = (mode === 'day') ? colors.groundDay : (mode === 'night' ? colors.groundNight : colors.groundThermal);
 
         // --- 地面の生成 ---
         const groundGeo = new THREE.PlaneGeometry(500, 500, 100, 100);
@@ -277,11 +280,16 @@
         groundGeo.computeVertexNormals();
         const groundMat = new THREE.MeshStandardMaterial({ color: gColor, map: groundTex, roughness: 0.9 });
         const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
+        ground.rotation.x = -Math.PI / 2; 
+        ground.receiveShadow = true;
         ground.userData = { isEnv: true, isGround: true, origColor: gColor, thermalColor: colors.groundThermal };
-        scene.add(ground); envObjs.push(ground);
+        scene.add(ground); 
+        envObjs.push(ground);
 
-        // --- 建物の生成 ---
+        // --- 建物・草木の生成 ---
+        const treeLogMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
+        const treeLeafMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, map: leafTex, transparent: true, alphaTest: 0.5 });
+
         for (let i = 0; i < 25; i++) {
             const x = (Math.random() - 0.5) * 300, z = (Math.random() - 0.5) * 300;
             const h = 4 + Math.random() * 6;
@@ -294,9 +302,7 @@
             scene.add(box); envObjs.push(box); mapBuildings.push({ x, z, w: 8, h: 8 });
         }
 
-        // --- 草木の生成 ---
-        const treeLogMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
-        const treeLeafMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, map: leafTex, transparent: true, alphaTest: 0.5 });
+        // --- 木の追加 ---
         for (let i = 0; i < 50; i++) {
             const x = (Math.random() - 0.5) * 400, z = (Math.random() - 0.5) * 400;
             const groundY = Math.sin(x * 0.04) * Math.cos(-z * 0.04) * 4 + Math.sin(x * 0.015) * 6;
@@ -310,23 +316,7 @@
             log.userData = { isEnv: true, isFoliage: true, origColor: 0x5d4037, thermalColor: 0x000088 };
             scene.add(log); envObjs.push(log);
         }
-
-        const grassMat = new THREE.MeshStandardMaterial({ color: 0x66bb6a, map: leafTex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide });
-        for (let i = 0; i < 150; i++) {
-            const x = (Math.random() - 0.5) * 450, z = (Math.random() - 0.5) * 450;
-            const groundY = Math.sin(x * 0.04) * Math.cos(-z * 0.04) * 4 + Math.sin(x * 0.015) * 6;
-            const g = new THREE.Group();
-            for (let j = 0; j < 3; j++) {
-                const blade = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 1.0 + Math.random() * 0.5), grassMat);
-                blade.rotation.y = (j / 3) * Math.PI + Math.random();
-                blade.position.y = 0.5;
-                g.add(blade);
-            }
-            g.position.set(x, groundY, z);
-            g.children.forEach(b => { b.userData = { isEnv: true, isFoliage: true, origColor: 0x66bb6a, thermalColor: 0x0000ff }; });
-            scene.add(g);
-        }
-    } // ここでしっかり createWorld を閉じる
+    } // createWorld の終了
         
     
     
