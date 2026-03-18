@@ -244,23 +244,47 @@ const groundMat = new THREE.MeshStandardMaterial({
     roughness: 0.9, // リアルな地面の反射を抑える
     metalness: 0.0 
 });
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), groundMat);
+// --- 地面の生成（セグメントを100x100に分割して起伏を作る） ---
+      const groundGeo = new THREE.PlaneGeometry(500, 500, 100, 100);
+      const posAttr = groundGeo.attributes.position;
+      
+      // 頂点をループして高低差をつける（サイン・コサイン波による簡便な地形生成）
+      for (let i = 0; i < posAttr.count; i++) {
+          const vx = posAttr.getX(i);
+          const vy = posAttr.getY(i); // PlaneGeometryは初期状態ではXY平面
+          // 地形の高さを計算（波を組み合わせて自然な丘を作る）
+          const elevation = Math.sin(vx * 0.04) * Math.cos(vy * 0.04) * 4 + Math.sin(vx * 0.015) * 6;
+          posAttr.setZ(i, elevation); // Z軸を隆起させる（後でX軸回転させるためこれが高さになる）
+      }
+      groundGeo.computeVertexNormals(); // 起伏に応じた光の反射を計算
+
+      const groundMat = new THREE.MeshStandardMaterial({ 
+          color: gColor, map: typeof groundTex !== 'undefined' ? groundTex : null, 
+          roughness: 0.9, metalness: 0.0 
+      });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
       ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
-      ground.userData = { isEnv: true, origColor: gColor, thermalColor: colors.groundThermal };
+      ground.userData = { isEnv: true, isGround: true, origColor: gColor, thermalColor: colors.groundThermal };
       scene.add(ground); envObjs.push(ground);
+
+      // --- 建物の生成（起伏に合わせて高さを調整） ---
       for(let i=0; i<25; i++) {
           const x = (Math.random()-0.5)*300, z = (Math.random()-0.5)*300;
           const h = 4 + Math.random()*6;
+          // 建物がある位置の地形の高さを再計算
+          const groundY = Math.sin(x * 0.04) * Math.cos(-z * 0.04) * 4 + Math.sin(x * 0.015) * 6;
+          
           const mat = new THREE.MeshStandardMaterial({
-    color: mode==='day' ? colors.wallDay : colors.wallNight,
-    map: wallTex,
-    roughness: 0.8,
-    metalness: 0.1
-});
-const box = new THREE.Mesh(new THREE.BoxGeometry(8, h, 8), mat);
-          box.position.set(x, h/2, z); box.castShadow = true; box.receiveShadow = true;
+              color: mode==='day' ? colors.wallDay : colors.wallNight,
+              map: typeof wallTex !== 'undefined' ? wallTex : null
+          });
+          const box = new THREE.Mesh(new THREE.BoxGeometry(8, h, 8), mat);
+          // 地面の高さに建物の半分を足してめり込まないようにする
+          box.position.set(x, groundY + h/2, z); 
+          box.castShadow = true; box.receiveShadow = true;
           box.userData = { isEnv: true, origColor: mat.color.getHex(), thermalColor: colors.wallThermal };
           scene.add(box); envObjs.push(box); mapBuildings.push({x, z, w:8, h:8});
+      }
       }
   }
   
