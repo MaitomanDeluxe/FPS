@@ -45,23 +45,7 @@
   #ch-bottom{width:2px;height:10px;left:50%;transform:translateX(-50%);bottom:0;}
   #ch-left{height:2px;width:10px;top:50%;transform:translateY(-50%);left:0;}
   #ch-right{height:2px;width:10px;top:50%;transform:translateY(-50%);right:0;}
-
-    #cooldown-ring {
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 40px; height: 40px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    /* CSSのconic-gradientで円形のゲージを表現 */
-    background: conic-gradient(rgba(255, 100, 100, 0.8) 0deg, transparent 0deg);
-    mask: radial-gradient(transparent 55%, black 55%);
-    -webkit-mask: radial-gradient(transparent 55%, black 55%);
-    pointer-events: none;
-    display: none;
-    z-index: 15;
-  }
-
-    
+  
   #hit-marker { position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; transform: translate(-50%, -50%); display: none; }
   .hm-line { position: absolute; top: 50%; left: 50%; width: 24px; height: 2px; background: #fff; box-shadow: 0 0 2px #000; }
   .hm-line:nth-child(1) { transform: translate(-50%, -50%) rotate(45deg); }
@@ -108,7 +92,6 @@
       <div style="color:#ffcc00;">SCORE: <span id="score">0</span></div>
       <div style="color:#ff5555;">ENEMIES: <span id="enemy-count">10</span></div>
     </div>
-    <div id="cooldown-ring"></div>
     
     <div id="crosshair-container">
       <div id="reddot"></div>
@@ -751,27 +734,7 @@
           pitch += recoil;
           recoil *= 0.9;
       }
-
-    if(!isPlaying) return; requestAnimationFrame(update);
-      
-      // --- 円形クールダウン/リロードUIの更新 ---
-      const ring = document.getElementById('cooldown-ring');
-      const w = weapons[curWepIdx];
-      const nowTime = Date.now();
-      let progress = 0;
-      
-      if (isReloading) {
-          progress = (nowTime - reloadStart) / w.reload;
-          ring.style.display = 'block';
-          ring.style.background = `conic-gradient(rgba(100, 255, 100, 0.8) ${progress * 360}deg, transparent 0deg)`; // 緑色
-      } else if (w.lastF && (nowTime - w.lastF) < w.rate && w.cur > 0 && w.type !== 'melee' && w.type !== 'nade') {
-          progress = (nowTime - w.lastF) / w.rate;
-          ring.style.display = 'block';
-          ring.style.background = `conic-gradient(rgba(255, 100, 100, 0.8) ${progress * 360}deg, transparent 0deg)`; // 赤色
-      } else {
-          ring.style.display = 'none';
-      }
-      // ----------------------------------------
+  
       playerRig.rotation.y = yaw;
       camera.rotation.x = pitch;
       if(moveCtrl.id) {
