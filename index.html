@@ -285,7 +285,7 @@ const groundMat = new THREE.MeshStandardMaterial({
           box.userData = { isEnv: true, origColor: mat.color.getHex(), thermalColor: colors.wallThermal };
           scene.add(box); envObjs.push(box); mapBuildings.push({x, z, w:8, h:8});
       }
-      }
+      
   }
   
   function spawnBot() {
@@ -982,27 +982,34 @@ const groundMat = new THREE.MeshStandardMaterial({
       ctx.resetTransform();
   }
   
-  /** --- SETUP --- */
+/** --- SETUP --- */
   document.getElementById('btn-deploy').onclick = () => {
+      // 設定の読み込み
       isDay = document.getElementById('sel-time').value === 'day';
       const ec = parseInt(document.getElementById('sel-enemies').value);
       
+      // 敵の数と無限モードの設定
       if(ec === 0 || ec === 999) {
           document.getElementById('btn-exit').style.display = 'block';
           isEndless = (ec === 999);
           enemiesRemaining = isEndless ? "∞" : 0;
           totalSpawns = isEndless ? 999 : 0;
       } else {
-          enemiesRemaining = ec; totalSpawns = ec;
+          enemiesRemaining = ec; 
+          totalSpawns = ec;
       }
       document.getElementById('enemy-count').innerText = enemiesRemaining;
   
+      // ワールド生成と画面切り替え
       createWorld(isDay ? 'day' : 'night');
-      for(let i=0; i<(isEndless?10:Math.min(10, totalSpawns)); i++) spawnBot();
-      if(!isDay) document.getElementById('btn-nvg').style.display = 'block';
+      for(let i=0; i<Math.min(ec, 10); i++) spawnBot();
+      
       document.getElementById('title-screen').style.display = 'none';
       document.getElementById('game-hud').style.display = 'block';
-      isPlaying = true; updateHUD(); update();
+      isPlaying = true;
+
+      // 前回の起伏実装で必要になったポインターロック等の開始
+      renderer.domElement.requestPointerLock();
   };
   </script>
 </body>
