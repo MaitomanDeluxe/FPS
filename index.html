@@ -257,15 +257,16 @@
       if(!isEndless) totalSpawns--;
   }
   
-  /** --- WEAPONS SYSTEM --- */
+  /** --- WEAPONS SYSTEM --- *//** --- WEAPONS SYSTEM --- */
   const weapons = [
-      { type:'ar', name:"CUSTOM AR15", mag:30, cur:30, res:120, rate:140, dmg:18, range:200, reload:2000 },
-      { type:'smg', name:"MP7 SMG", mag:40, cur:40, res:160, rate:60, dmg:12, range:150, reload:1500 },
-      { type:'sr', name:"AWM SNIPER", mag:5, cur:5, res:20, rate:1200, dmg:120, range:600, reload:3000 },
-      { type:'hg', name:"G17 PISTOL", mag:15, cur:15, res:60, rate:250, dmg:20, range:100, reload:1200 },
-      { type:'hg', name:".357 PYTHON REVOLVER", mag:6, cur:6, res:30, rate:500, dmg:65, range:150, reload:2500 },
-      { type:'melee', name:"COMBAT KNIFE", mag:'-', cur:'-', res:'-', rate:400, dmg:50, range:2, reload:0 },
-      { type:'nade', name:"M67 FRAG", mag:1, cur:1, res:4, rate:1000, dmg:150, range:0, reload:500 }
+      { type:'ar', name:"CUSTOM AR15", mag:30, cur:30, res:120, rate:140, dmg:18, range:200, reload:2000, zoomFOV: 40 },
+      { type:'smg', name:"MP7 SMG", mag:40, cur:40, res:160, rate:60, dmg:12, range:150, reload:1500, zoomFOV: 45 },
+      // AWMは3倍スコープなので FOVを25に設定
+      { type:'sr', name:"AWM SNIPER", mag:5, cur:5, res:20, rate:1200, dmg:120, range:600, reload:3000, zoomFOV: 25 },
+      { type:'hg', name:"G17 PISTOL", mag:15, cur:15, res:60, rate:250, dmg:20, range:100, reload:1200, zoomFOV: 45 },
+      { type:'hg', name:".357 PYTHON REVOLVER", mag:6, cur:6, res:30, rate:500, dmg:65, range:150, reload:2500, zoomFOV: 40 },
+      { type:'melee', name:"COMBAT KNIFE", mag:'-', cur:'-', res:'-', rate:400, dmg:50, range:2, reload:0, zoomFOV: 75 },
+      { type:'nade', name:"M67 FRAG", mag:1, cur:1, res:4, rate:1000, dmg:150, range:0, reload:500, zoomFOV: 75 }
   ];
   let curWepIdx = 0; let isADS = false, isReloading = false, reloadStart = 0;
   
