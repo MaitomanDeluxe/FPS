@@ -1009,6 +1009,7 @@
     
     /** --- SETUP --- */
     document.getElementById('btn-deploy').onclick = () => {
+      console.log("Deploy button clicked");
         isDay = document.getElementById('sel-time').value === 'day';
         const ec = parseInt(document.getElementById('sel-enemies').value);
         
