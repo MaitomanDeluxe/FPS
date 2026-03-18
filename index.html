@@ -1,259 +1,440 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Tactical FPS - AWM Special Edition</title>
+  <title>Tactical Warzone V7.0 - AWM Special</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-    :root { --wb-dark: rgba(20, 20, 20, 0.85); --wb-border: 2px solid #aaa; --primary: #00ffcc; }
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Share Tech Mono', monospace; user-select: none; }
-    #game-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-    .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: none; }
-    
-    /* クロスヘアと円形プログレスバー */
-    #crosshair-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
-    .ch-line { position: absolute; background: #0f0; }
-    .ch-v { width: 2px; height: 15px; }
-    .ch-h { width: 15px; height: 2px; }
-    
-    #cooldown-ring {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 50px; height: 50px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      mask: radial-gradient(transparent 58%, black 60%);
-      -webkit-mask: radial-gradient(transparent 58%, black 60%);
-      z-index: 15;
-      display: none;
-    }
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+  :root { --wb-dark: rgba(20, 20, 20, 0.85); --wb-border: 2px solid #aaa; --primary: #00ffcc; }
+  body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Share Tech Mono', monospace; user-select: none; }
+  #game-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+  
+  .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: none; }
+  
+  /* 中央クロスヘア & 円形プログレスバー */
+  #crosshair-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+  .ch-line { position: absolute; background: #0f0; opacity: 0.8; }
+  .ch-v { width: 1.5px; height: 12px; }
+  .ch-h { width: 12px; height: 1.5px; }
 
-    #hud { position: absolute; bottom: 20px; right: 20px; color: #fff; text-align: right; text-shadow: 2px 2px #000; }
-    #weapon-name { font-size: 24px; color: var(--primary); }
-    #ammo-display { font-size: 48px; }
-    .ctrl { position: absolute; bottom: 20px; width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; pointer-events: auto; }
-    #btn-fire { right: 20px; bottom: 120px; width: 100px; height: 100px; background: rgba(255,0,0,0.3); }
-    #btn-ads { right: 130px; bottom: 40px; }
-    #btn-reload { right: 20px; bottom: 20px; }
-    #joystick-base { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%; }
-    #joystick-stick { position: absolute; top: 30px; left: 30px; width: 60px; height: 60px; background: #fff; border-radius: 50%; opacity: 0.5; }
+  #cooldown-ring {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 44px; height: 44px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    mask: radial-gradient(transparent 60%, black 62%);
+    -webkit-mask: radial-gradient(transparent 60%, black 62%);
+    z-index: 15;
+    display: none;
+  }
+
+  /* HUD */
+  #top-hud { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); text-align: center; color: #fff; }
+  #kill-feed { position: absolute; top: 60px; left: 20px; color: #0f0; font-size: 14px; }
+  #bottom-right-hud { position: absolute; bottom: 20px; right: 20px; text-align: right; color: #fff; }
+  #weapon-name { font-size: 20px; color: var(--primary); }
+  #ammo-display { font-size: 40px; }
+  
+  /* 操作系 */
+  .ctrl { position: absolute; background: rgba(255, 255, 255, 0.1); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; pointer-events: auto; }
+  #btn-fire { right: 30px; bottom: 130px; width: 90px; height: 90px; background: rgba(255, 0, 0, 0.2); }
+  #btn-ads { right: 130px; bottom: 40px; width: 70px; height: 70px; }
+  #btn-reload { right: 30px; bottom: 30px; width: 70px; height: 70px; }
+  #btn-jump { left: 180px; bottom: 40px; width: 60px; height: 60px; }
+  #btn-switch { left: 260px; bottom: 40px; width: 60px; height: 60px; font-size: 10px; }
+
+  #joystick-base { position: absolute; bottom: 40px; left: 40px; width: 110px; height: 110px; background: rgba(255, 255, 255, 0.15); border-radius: 50%; pointer-events: auto; }
+  #joystick-stick { position: absolute; top: 30px; left: 30px; width: 50px; height: 50px; background: #fff; border-radius: 50%; opacity: 0.6; }
+
+  /* ミニマップ */
+  #minimap-container { position: absolute; top: 10px; left: 10px; width: 120px; height: 120px; background: var(--wb-dark); border: var(--wb-border); border-radius: 4px; }
+  #minimap-canvas { width: 100%; height: 100%; }
+
+  /* メニュー */
+  #menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: #fff; }
+  select, button { margin: 10px; padding: 10px 20px; font-family: inherit; font-size: 16px; background: #333; color: #fff; border: 1px solid #fff; cursor: pointer; }
+  button:hover { background: var(--primary); color: #000; }
   </style>
 </head>
+
 <body>
+  <div id="menu">
+    <h1 style="color:var(--primary)">TACTICAL WARZONE V7.0</h1>
+    <p>AWM SPECIAL UPDATE</p>
+    <label>TIME OF DAY: <select id="sel-time"><option value="day">DAYLIGHT</option><option value="night">NIGHT OPS</option></select></label>
+    <label>ENEMIES: <select id="sel-enemies"><option value="3">3 BOTS</option><option value="8">8 BOTS</option><option value="15">15 BOTS</option><option value="999">ENDLESS MODE</option></select></label>
+    <button id="btn-deploy">DEPLOY TO ZONE</button>
+  </div>
+
   <canvas id="game-canvas"></canvas>
-  
-  <div class="overlay" id="ui-layer" style="display: block;">
+
+  <div class="overlay" id="ui-layer">
+    <div id="minimap-container"><canvas id="minimap-canvas"></canvas></div>
+    <div id="top-hud">ENEMIES REMAINING: <span id="enemy-count">0</span></div>
+    <div id="kill-feed"></div>
     <div id="cooldown-ring"></div>
     <div id="crosshair-container">
       <div class="ch-line ch-v"></div>
       <div class="ch-line ch-h"></div>
     </div>
-    <div id="hud">
+    <div id="bottom-right-hud">
       <div id="weapon-name">AWM SNIPER</div>
       <div id="ammo-display">5 / 20</div>
     </div>
     <div id="btn-fire" class="ctrl">FIRE</div>
     <div id="btn-ads" class="ctrl">ADS</div>
     <div id="btn-reload" class="ctrl">RELOAD</div>
+    <div id="btn-jump" class="ctrl">JUMP</div>
+    <div id="btn-switch" class="ctrl">SWAP</div>
     <div id="joystick-base"><div id="joystick-stick"></div></div>
+    <button id="btn-exit" style="position:absolute; top:10px; right:10px; display:none; pointer-events:auto;">EXIT</button>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    /** --- 基礎設定 --- */
+    /** --- グローバル定数・変数 --- */
     let scene, camera, renderer, clock;
-    let playerRig, gunParent;
-    let isADS = false, isReloading = false;
-    let curWepIdx = 2; // 初期武器 AWM
+    let playerRig, gunParent, curAwmFrontSight;
+    let isADS = false, isReloading = false, isPlaying = false, isDay = true, isEndless = false;
+    let curWepIdx = 2; // Default AWM
     let reloadStart = 0;
+    let yaw = 0, pitch = 0;
+    let enemiesRemaining = 0, totalSpawns = 0;
     const cameraFOV = { current: 75, target: 75 };
+    const moveState = { fwd: 0, str: 0, vel: new THREE.Vector3(), onGround: true };
 
-    /** --- 武器データ --- */
     const weapons = [
-      { type:'ar', name:"CUSTOM AR15", mag:30, cur:30, res:120, rate:140, dmg:18, reload:2000, zoomFOV: 40, lastF:0 },
-      { type:'smg', name:"MP7 SMG", mag:40, cur:40, res:160, rate:60, dmg:12, reload:1500, zoomFOV: 45, lastF:0 },
-      { type:'sr', name:"AWM SNIPER", mag:5, cur:5, res:20, rate:1300, dmg:120, reload:3000, zoomFOV: 22, lastF:0 }, // AWM: 3倍相当
-      { type:'hg', name:"G17 PISTOL", mag:15, cur:15, res:60, rate:250, dmg:20, reload:1200, zoomFOV: 45, lastF:0 }
+      { type:'ar', name:"CUSTOM AR15", mag:30, cur:30, res:120, rate:140, dmg:22, reload:2200, zoomFOV: 42, lastF:0 },
+      { type:'smg', name:"MP7 SMG", mag:40, cur:40, res:160, rate:65, dmg:14, reload:1600, zoomFOV: 48, lastF:0 },
+      { type:'sr', name:"AWM SNIPER", mag:5, cur:5, res:25, rate:1300, dmg:150, reload:3500, zoomFOV: 22, lastF:0 },
+      { type:'hg', name:"G17 PISTOL", mag:15, cur:15, res:60, rate:200, dmg:24, reload:1200, zoomFOV: 45, lastF:0 }
     ];
 
-    init();
-    animate();
+    const bots = [];
+    const botProjectiles = [];
+    const worldSize = 100;
 
+    /** --- 初期化 --- */
     function init() {
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x87ceeb);
-      camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.01, 1000);
       clock = new THREE.Clock();
-
       renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('game-canvas'), antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
 
-      const light = new THREE.DirectionalLight(0xffffff, 1);
-      light.position.set(10, 20, 10);
-      scene.add(light, new THREE.AmbientLight(0x404040));
-
-      // 床
-      const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0x555555 }));
-      floor.rotation.x = -Math.PI/2;
-      scene.add(floor);
-
-      // プレイヤーと銃の階層構造成
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.01, 1000);
       playerRig = new THREE.Group();
       scene.add(playerRig);
+      playerRig.position.set(0, 1.7, 0);
       playerRig.add(camera);
-      
+
       gunParent = new THREE.Group();
       camera.add(gunParent);
 
-      setupAWM();
+      setupLighting();
+      createTerrain();
+      buildWeapon(curWepIdx);
+      setupInputs();
+    }
+
+    function setupLighting() {
+      const amb = new THREE.AmbientLight(0xffffff, isDay ? 0.6 : 0.1);
+      scene.add(amb);
+      const sun = new THREE.DirectionalLight(0xffffff, isDay ? 1.0 : 0.2);
+      sun.position.set(50, 100, 50);
+      scene.add(sun);
+      if(!isDay) scene.fog = new THREE.FogExp2(0x00050a, 0.05);
+      scene.background = new THREE.Color(isDay ? 0x87ceeb : 0x00050a);
+    }
+
+    function createTerrain() {
+      const floor = new THREE.Mesh(new THREE.PlaneGeometry(worldSize*2, worldSize*2), new THREE.MeshStandardMaterial({color: isDay ? 0x556644 : 0x111111}));
+      floor.rotation.x = -Math.PI/2;
+      scene.add(floor);
+      // 簡単な障害物
+      for(let i=0; i<30; i++) {
+        const box = new THREE.Mesh(new THREE.BoxGeometry(2, Math.random()*5+2, 2), new THREE.MeshStandardMaterial({color: 0x333333}));
+        box.position.set(Math.random()*80-40, box.geometry.parameters.height/2, Math.random()*80-40);
+        scene.add(box);
+      }
+    }
+
+    /** --- 武器構築 (AWM Special) --- */
+    function buildWeapon(idx) {
+      while(gunParent.children.length > 0) gunParent.remove(gunParent.children[0]);
+      const w = weapons[idx];
+      const gunGroup = new THREE.Group();
+      const gunMat = new THREE.MeshStandardMaterial({color: 0x222222});
+      const gunAccMat = new THREE.MeshStandardMaterial({color: 0x111111});
+
+      if(w.type === 'sr') {
+        // AWM SPEC: 1.5倍巨大化 & 極細スコープ
+        gunGroup.scale.set(1.5, 1.5, 1.5);
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.06, 0.45), new THREE.MeshStandardMaterial({color: 0x3d5c31}));
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.009, 0.5), gunMat);
+        barrel.rotation.x = Math.PI/2; barrel.position.set(0, 0.015, -0.4);
+        
+        // フロントサイト (ADS中に消す用)
+        curAwmFrontSight = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.015, 0.005), gunAccMat);
+        curAwmFrontSight.position.set(0, 0.03, -0.6);
+        
+        // スコープ (極細化)
+        const outerR = 0.016, innerR = 0.015;
+        const scopeShape = new THREE.Shape();
+        scopeShape.absarc(0, 0, outerR, 0, Math.PI * 2, false);
+        const hole = new THREE.Path();
+        hole.absarc(0, 0, innerR, 0, Math.PI * 2, true);
+        scopeShape.holes.push(hole);
+        
+        const scopeTube = new THREE.Mesh(new THREE.ExtrudeGeometry(scopeShape, {depth:0.2, bevelEnabled:false}), gunAccMat);
+        scopeTube.position.set(0, 0.065, -0.15);
+        
+        const m1 = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.03, 0.012), gunAccMat); m1.position.set(0, 0.045, -0.1);
+        const m2 = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.03, 0.012), gunAccMat); m2.position.set(0, 0.045, 0.03);
+
+        // 十字レティクル (極細)
+        const rMat = new THREE.MeshBasicMaterial({color: 0x000000, transparent:true, opacity:0.9});
+        const rV = new THREE.Mesh(new THREE.PlaneGeometry(0.0006, 0.028), rMat);
+        const rH = new THREE.Mesh(new THREE.PlaneGeometry(0.028, 0.0006), rMat);
+        const reticle = new THREE.Group();
+        reticle.add(rV, rH);
+        reticle.position.set(0, 0.065, 0.04);
+
+        gunGroup.add(body, barrel, curAwmFrontSight, scopeTube, m1, m2, reticle);
+        gunGroup.idlePos = new THREE.Vector3(0.25, -0.25, -0.45);
+        gunGroup.adsPos = new THREE.Vector3(0, -0.065 * 1.5, -0.15);
+      } else {
+        // 通常武器モデル
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.25), gunMat);
+        gunGroup.add(body);
+        gunGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.4);
+        gunGroup.adsPos = new THREE.Vector3(0, -0.05, -0.2);
+      }
+
+      gunGroup.position.copy(gunGroup.idlePos);
+      gunParent.add(gunGroup);
       updateHUD();
     }
 
-    function setupAWM() {
-      const gunMat = new THREE.MeshStandardMaterial({color: 0x222222});
-      const gunAccMat = new THREE.MeshStandardMaterial({color: 0x111111});
-      
-      const awmGroup = new THREE.Group();
-      // 全体を1.5倍に巨大化
-      awmGroup.scale.set(1.5, 1.5, 1.5);
-
-      // ボディ
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.06, 0.45), new THREE.MeshStandardMaterial({color: 0x3d5c31}));
-      awmGroup.add(body);
-
-      // 銃身
-      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.009, 0.5), gunMat);
-      barrel.rotation.x = Math.PI/2; barrel.position.set(0, 0.015, -0.4);
-      awmGroup.add(barrel);
-
-      // --- スコープチューブ (くり抜き構造) ---
-      const outerRadius = 0.018;
-      const innerRadius = 0.016;
-      const scopeShape = new THREE.Shape();
-      scopeShape.absarc(0, 0, outerRadius, 0, Math.PI * 2, false);
-      const holePath = new THREE.Path();
-      holePath.absarc(0, 0, innerRadius, 0, Math.PI * 2, true);
-      scopeShape.holes.push(holePath);
-
-      const extrudeSettings = { depth: 0.2, bevelEnabled: false };
-      const scopeTube = new THREE.Mesh(new THREE.ExtrudeGeometry(scopeShape, extrudeSettings), gunAccMat);
-      scopeTube.position.set(0, 0.065, -0.15); 
-      awmGroup.add(scopeTube);
-
-      // --- 2本のスコープマウント柱 ---
-      const mount1 = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.035, 0.015), gunAccMat);
-      mount1.position.set(0, 0.045, -0.12);
-      const mount2 = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.035, 0.015), gunAccMat);
-      mount2.position.set(0, 0.045, 0.02);
-      awmGroup.add(mount1, mount2);
-
-      // --- 内部レティクル (十字線) ---
-      const reticleMat = new THREE.MeshBasicMaterial({color: 0x000000});
-      const reticleV = new THREE.Mesh(new THREE.PlaneGeometry(0.001, 0.03), reticleMat);
-      const reticleH = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 0.001), reticleMat);
-      const reticle = new THREE.Group();
-      reticle.add(reticleV, reticleH);
-      reticle.position.set(0, 0.065, 0.04); // チューブの後方に配置
-      awmGroup.add(reticle);
-
-      gunParent.add(awmGroup);
-      
-      // ポジション設定
-      awmGroup.idlePos = new THREE.Vector3(0.25, -0.25, -0.45);
-      awmGroup.adsPos = new THREE.Vector3(0, -0.065 * 1.5, -0.2); // スコープの高さを相殺
-      awmGroup.position.copy(awmGroup.idlePos);
-    }
-
-    /** --- アニメーションループ --- */
+    /** --- コアループ --- */
     function animate() {
+      if(!isPlaying) return;
       requestAnimationFrame(animate);
       const dt = clock.getDelta();
       const now = Date.now();
 
-      // FOVのスムーズな移行
-      cameraFOV.current = THREE.MathUtils.lerp(cameraFOV.current, cameraFOV.target, 0.15);
+      // 移動処理
+      moveState.vel.x -= moveState.vel.x * 10 * dt;
+      moveState.vel.z -= moveState.vel.z * 10 * dt;
+      if(!moveState.onGround) moveState.vel.y -= 25 * dt;
+
+      const moveVec = new THREE.Vector3(moveState.str, 0, moveState.fwd).applyQuaternion(playerRig.quaternion).normalize().multiplyScalar(40 * dt);
+      moveState.vel.add(moveVec);
+      playerRig.position.add(moveState.vel.clone().multiplyScalar(dt));
+      if(playerRig.position.y < 1.7) { playerRig.position.y = 1.7; moveState.onGround = true; moveState.vel.y = 0; }
+
+      // ADS・FOV
+      cameraFOV.current = THREE.MathUtils.lerp(cameraFOV.current, cameraFOV.target, 0.2);
       camera.fov = cameraFOV.current;
       camera.updateProjectionMatrix();
+      
+      const g = gunParent.children[0];
+      const tPos = isADS ? g.adsPos : g.idlePos;
+      g.position.lerp(tPos, 0.2);
 
-      // 銃のポジションの滑らかな移動 (ADS)
-      const targetPos = isADS ? gunParent.children[0].adsPos : gunParent.children[0].idlePos;
-      gunParent.children[0].position.lerp(targetPos, 0.2);
+      // AWM ADS中のフロントサイト非表示
+      if(curAwmFrontSight) curAwmFrontSight.visible = !isADS;
 
-      // --- 円形プログレスバーの更新 ---
-      const ring = document.getElementById('cooldown-ring');
-      const w = weapons[curWepIdx];
-      let progress = 0;
+      // ロード・クールダウン円形UI
+      updateProgressRing(now);
 
-      if (isReloading) {
-        progress = (now - reloadStart) / w.reload;
-        if (progress >= 1) { finishReload(); }
-        ring.style.display = 'block';
-        ring.style.background = `conic-gradient(#00ffcc ${progress * 360}deg, transparent 0deg)`;
-      } else if (now - w.lastF < w.rate) {
-        progress = (now - w.lastF) / w.rate;
-        ring.style.display = 'block';
-        ring.style.background = `conic-gradient(rgba(255, 50, 50, 0.8) ${progress * 360}deg, transparent 0deg)`;
-      } else {
-        ring.style.display = 'none';
-      }
+      // Bot AI
+      updateBots(dt);
 
+      renderMinimap();
       renderer.render(scene, camera);
     }
 
-    /** --- 動作ロジック --- */
+    function updateProgressRing(now) {
+      const ring = document.getElementById('cooldown-ring');
+      const w = weapons[curWepIdx];
+      let p = 0;
+      if(isReloading) {
+        p = (now - reloadStart) / w.reload;
+        if(p >= 1) finishReload();
+        ring.style.display = 'block';
+        ring.style.background = `conic-gradient(var(--primary) ${p*360}deg, transparent 0deg)`;
+      } else if(now - w.lastF < w.rate && w.type !== 'melee') {
+        p = (now - w.lastF) / w.rate;
+        ring.style.display = 'block';
+        ring.style.background = `conic-gradient(rgba(255,50,50,0.7) ${p*360}deg, transparent 0deg)`;
+      } else {
+        ring.style.display = 'none';
+      }
+    }
+
+    /** --- 戦闘ロジック --- */
     function fire() {
       const w = weapons[curWepIdx];
       const now = Date.now();
-      if (isReloading || w.cur <= 0 || now - w.lastF < w.rate) return;
+      if(isReloading || w.cur <= 0 || now - w.lastF < w.rate) return;
 
       w.cur--;
       w.lastF = now;
       updateHUD();
-      
-      // 発射反動（簡易）
-      gunParent.children[0].position.z += 0.05;
-      if (w.cur === 0) startReload();
+
+      // 反動アニメ
+      gunParent.children[0].position.z += 0.06;
+
+      // Hitscan
+      const ray = new THREE.Raycaster();
+      ray.setFromCamera(new THREE.Vector2(0,0), camera);
+      const hits = ray.intersectObjects(bots.map(b=>b.mesh));
+      if(hits.length > 0) {
+        const bot = bots.find(b=>b.mesh === hits[0].object);
+        bot.hp -= w.dmg;
+        if(bot.hp <= 0) killBot(bot);
+      }
+      if(w.cur === 0) startReload();
     }
 
     function startReload() {
-      if (isReloading || weapons[curWepIdx].res <= 0) return;
-      isReloading = true;
-      reloadStart = Date.now();
+      if(isReloading || weapons[curWepIdx].res <= 0) return;
+      isReloading = true; reloadStart = Date.now();
     }
-
     function finishReload() {
       isReloading = false;
       const w = weapons[curWepIdx];
-      const need = w.mag - w.cur;
-      const take = Math.min(need, w.res);
-      w.cur += take;
-      w.res -= take;
-      updateHUD();
+      const take = Math.min(w.mag - w.cur, w.res);
+      w.cur += take; w.res -= take; updateHUD();
     }
 
+    /** --- Botシステム --- */
+    function spawnBot() {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.8, 0.8), new THREE.MeshStandardMaterial({color:0xff3333}));
+      mesh.position.set(Math.random()*60-30, 0.9, Math.random()*60-30);
+      scene.add(mesh);
+      bots.push({mesh, hp:100, lastShot:0});
+    }
+    function updateBots(dt) {
+      const now = Date.now();
+      bots.forEach(b => {
+        // プレイヤーを向く
+        b.mesh.lookAt(playerRig.position.x, 0.9, playerRig.position.z);
+        // 接近
+        const dir = new THREE.Vector3().subVectors(playerRig.position, b.mesh.position).normalize();
+        if(b.mesh.position.distanceTo(playerRig.position) > 10) {
+          b.mesh.position.add(dir.multiplyScalar(2 * dt));
+        }
+        // 攻撃
+        if(now - b.lastShot > 2000) { b.lastShot = now; /* 弾丸エフェクト等 */ }
+      });
+    }
+    function killBot(bot) {
+      scene.remove(bot.mesh);
+      bots.splice(bots.indexOf(bot), 1);
+      if(!isEndless) {
+        enemiesRemaining--;
+        document.getElementById('enemy-count').innerText = enemiesRemaining;
+        if(enemiesRemaining <= 0) alert("AREA CLEARED");
+      } else {
+        spawnBot(); // エンドレス
+      }
+    }
+
+    /** --- UI・入力 --- */
     function updateHUD() {
       const w = weapons[curWepIdx];
       document.getElementById('weapon-name').innerText = w.name;
       document.getElementById('ammo-display').innerText = `${w.cur} / ${w.res}`;
     }
 
-    /** --- 入力イベント --- */
-    document.getElementById('btn-fire').addEventListener('touchstart', (e) => { e.preventDefault(); fire(); });
-    document.getElementById('btn-ads').addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      isADS = !isADS;
-      cameraFOV.target = isADS ? weapons[curWepIdx].zoomFOV : 75;
-      document.getElementById('crosshair-container').style.display = isADS ? 'none' : 'flex';
-    });
-    document.getElementById('btn-reload').addEventListener('touchstart', (e) => { e.preventDefault(); startReload(); });
+    function setupInputs() {
+      // ADS
+      document.getElementById('btn-ads').ontouchstart = (e) => {
+        e.preventDefault();
+        isADS = !isADS;
+        cameraFOV.target = isADS ? weapons[curWepIdx].zoomFOV : 75;
+        document.getElementById('crosshair-container').style.display = isADS ? 'none' : 'flex';
+      };
+      // FIRE
+      document.getElementById('btn-fire').ontouchstart = (e) => { e.preventDefault(); fire(); };
+      // RELOAD
+      document.getElementById('btn-reload').ontouchstart = (e) => { e.preventDefault(); startReload(); };
+      // SWITCH
+      document.getElementById('btn-switch').ontouchstart = (e) => {
+        e.preventDefault();
+        curWepIdx = (curWepIdx + 1) % weapons.length;
+        isADS = false; cameraFOV.target = 75;
+        document.getElementById('crosshair-container').style.display = 'flex';
+        buildWeapon(curWepIdx);
+      };
+      // JUMP
+      document.getElementById('btn-jump').ontouchstart = (e) => { if(moveState.onGround) { moveState.vel.y = 8; moveState.onGround = false; } };
 
-    // 画面リサイズ対応
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+      // タッチ視点移動
+      window.ontouchmove = (e) => {
+        if(!isPlaying) return;
+        const t = e.touches[0];
+        if(t.clientX > window.innerWidth/2) {
+          const dx = t.radiusX || 20; // 簡易
+          yaw -= (e.movementX || 0) * 0.003;
+          pitch -= (e.movementY || 0) * 0.003;
+          pitch = Math.max(-Math.PI/2.2, Math.min(Math.PI/2.2, pitch));
+          playerRig.rotation.y = yaw;
+          camera.rotation.x = pitch;
+        }
+      };
+
+      // ジョイスティック
+      const jBase = document.getElementById('joystick-base');
+      const jStick = document.getElementById('joystick-stick');
+      jBase.ontouchmove = (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        const rect = jBase.getBoundingClientRect();
+        const cx = rect.left + 55, cy = rect.top + 55;
+        let dx = t.clientX - cx, dy = t.clientY - cy;
+        const dist = Math.min(Math.sqrt(dx*dx+dy*dy), 40);
+        const angle = Math.atan2(dy, dx);
+        jStick.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+        moveState.str = Math.cos(angle) * (dist/40);
+        moveState.fwd = -Math.sin(angle) * (dist/40);
+      };
+      jBase.ontouchend = () => { jStick.style.transform = `translate(0,0)`; moveState.fwd = 0; moveState.str = 0; };
+    }
+
+    function renderMinimap() {
+      const canvas = document.getElementById('minimap-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,120,120);
+      const scale = 1.2, c = 60;
+      ctx.fillStyle = '#f00';
+      bots.forEach(b => {
+        const dx = (b.mesh.position.x - playerRig.position.x) * scale;
+        const dz = (b.mesh.position.z - playerRig.position.z) * scale;
+        ctx.beginPath(); ctx.arc(c+dx, c+dz, 2, 0, Math.PI*2); ctx.fill();
+      });
+      ctx.fillStyle = '#0f0';
+      ctx.beginPath(); ctx.arc(c, c, 3, 0, Math.PI*2); ctx.fill();
+    }
+
+    document.getElementById('btn-deploy').onclick = () => {
+      isDay = document.getElementById('sel-time').value === 'day';
+      const ec = parseInt(document.getElementById('sel-enemies').value);
+      isEndless = (ec === 999);
+      enemiesRemaining = isEndless ? "∞" : ec;
+      document.getElementById('enemy-count').innerText = enemiesRemaining;
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('ui-layer').style.display = 'block';
+      isPlaying = true;
+      init();
+      for(let i=0; i<(isEndless?8:ec); i++) spawnBot();
+      animate();
+    };
   </script>
 </body>
 </html>
