@@ -660,11 +660,12 @@
   });
   document.getElementById('btn-jump').ontouchstart = e => { e.preventDefault(); if(isGrounded) {vy=0.2; isGrounded=false;} };
   document.getElementById('btn-reload').ontouchstart = e => { e.preventDefault(); startReload(); };
-  document.getElementById('btn-ads').ontouchstart = e => { 
+ document.getElementById('btn-ads').ontouchstart = e => { 
       e.preventDefault();
       if(weapons[curWepIdx].type==='melee' || weapons[curWepIdx].type==='nade') return;
       isADS = !isADS;
-      cameraFOV.target = isADS ? 40 : 75;
+      // ここを変更：固定の40ではなく、武器ごとのFOVを参照する
+      cameraFOV.target = isADS ? weapons[curWepIdx].zoomFOV : 75;
       document.getElementById('btn-ads').style.background = isADS ? 'rgba(0,255,100,0.5)' : 'rgba(255,255,255,0.1)';
   };
   
