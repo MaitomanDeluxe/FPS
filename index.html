@@ -238,15 +238,26 @@ wallTex.repeat.set(2, 2); // 建築物のサイズに合わせてリ
           scene.add(new THREE.AmbientLight(0xffffff, 0.1));
       }
   
-      const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshStandardMaterial({ color: gColor }));
+const groundMat = new THREE.MeshStandardMaterial({ 
+    color: gColor, // 昼夜のベースカラーをブレンド
+    map: groundTex, 
+    roughness: 0.9, // リアルな地面の反射を抑える
+    metalness: 0.0 
+});
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), groundMat);
       ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
       ground.userData = { isEnv: true, origColor: gColor, thermalColor: colors.groundThermal };
       scene.add(ground); envObjs.push(ground);
       for(let i=0; i<25; i++) {
           const x = (Math.random()-0.5)*300, z = (Math.random()-0.5)*300;
           const h = 4 + Math.random()*6;
-          const mat = new THREE.MeshStandardMaterial({color: mode==='day'?colors.wallDay:colors.wallNight});
-          const box = new THREE.Mesh(new THREE.BoxGeometry(8, h, 8), mat);
+          const mat = new THREE.MeshStandardMaterial({
+    color: mode==='day' ? colors.wallDay : colors.wallNight,
+    map: wallTex,
+    roughness: 0.8,
+    metalness: 0.1
+});
+const box = new THREE.Mesh(new THREE.BoxGeometry(8, h, 8), mat);
           box.position.set(x, h/2, z); box.castShadow = true; box.receiveShadow = true;
           box.userData = { isEnv: true, origColor: mat.color.getHex(), thermalColor: colors.wallThermal };
           scene.add(box); envObjs.push(box); mapBuildings.push({x, z, w:8, h:8});
