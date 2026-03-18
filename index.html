@@ -203,11 +203,27 @@
   const envObjs = []; const hittableTargets = []; const mapBuildings = []; const bots = [];
 
   /** --- MATERIALS & COLORS (For Thermal Support) --- */
-  const colors = {
-      groundDay: 0x4d5c31, groundNight: 0x111111, groundThermal: 0x000022,
-      wallDay: 0x888888, wallNight: 0x222222, wallThermal: 0x000033,
-      botSkin: 0xffccaa, botBody: 0x333333, botThermal: 0xff3300
-  };
+  /** --- MATERIALS & COLORS (For Thermal Support) --- */
+const colors = {
+    groundDay: 0x4d5c31, groundNight: 0x111111, groundThermal: 0x000022,
+    wallDay: 0x888888, wallNight: 0x222222, wallThermal: 0x000033,
+    botSkin: 0xffccaa, botBody: 0x333333, botThermal: 0xff3300
+};
+
+/** --- TEXTURES --- */
+const texLoader = new THREE.TextureLoader();
+
+// 地面用テクスチャ（例としてThree.js公式の芝生テクスチャを使用）
+const groundTex = texLoader.load('https://threejs.org/examples/textures/terrain/grasslight-big.jpg');
+groundTex.wrapS = THREE.RepeatWrapping;
+groundTex.wrapT = THREE.RepeatWrapping;
+groundTex.repeat.set(40, 40); // 500x500の広大な地面に合わせてリピート
+
+// 壁用テクスチャ（例としてThree.js公式のレンガテクスチャを使用）
+const wallTex = texLoader.load('https://threejs.org/examples/textures/brick_diffuse.jpg');
+wallTex.wrapS = THREE.RepeatWrapping;
+wallTex.wrapT = THREE.RepeatWrapping;
+wallTex.repeat.set(2, 2); // 建築物のサイズに合わせてリ
 
   function createWorld(mode) {
       let gColor = mode==='day' ? colors.groundDay : colors.groundNight;
