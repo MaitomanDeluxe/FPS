@@ -39,22 +39,6 @@
   
   /* Crosshair & Hitmarker */
   #crosshair-container{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:40px; height:40px; }
-
-#cooldown-ring {
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 40px; height: 40px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    /* CSSのconic-gradientで円形のゲージを表現 */
-    background: conic-gradient(rgba(255, 100, 100, 0.8) 0deg, transparent 0deg);
-    mask: radial-gradient(transparent 55%, black 55%);
-    -webkit-mask: radial-gradient(transparent 55%, black 55%);
-    pointer-events: none;
-    display: none;
-    z-index: 15;
-  }
-    
   .ch{ position:absolute; background:white; box-shadow:0 0 3px #000; }
   #ch-dot{ position:absolute; top:50%; left:50%; width:4px; height:4px; background:white; border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 0 1px black; }
   #ch-top{width:2px;height:10px;left:50%;transform:translateX(-50%);top:0;}
@@ -117,7 +101,6 @@
       <div id="ch-right" class="ch"></div>
       <div id="ch-dot"></div>
     </div>
-    <div id="cooldown-ring"></div>
     
     <div id="hit-marker">
         <div class="hm-line"></div>
@@ -330,47 +313,14 @@
   mp7Group.add(mp7Body, mp7Mag, mp7ForeGrip, mp7Stock, mp7Sight);
   mp7Group.idlePos = new THREE.Vector3(0.18, -0.18, -0.35); mp7Group.adsPos = new THREE.Vector3(0, -0.035, -0.25);
 
- // 3. AWM SNIPER
+  // 3. AWM SNIPER
   const awmGroup = new THREE.Group();
-  // 全体を1.4倍に巨大化
-  awmGroup.scale.set(1.4, 1.4, 1.4);
-
   const awmBody = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.06, 0.4), new THREE.MeshStandardMaterial({color: 0x3d5c31}));
-  const awmBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.008, 0.4), gunMat); 
-  awmBarrel.rotation.x = Math.PI/2; awmBarrel.position.set(0, 0.01, -0.35);
-  const awmMag = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.06, 0.04), gunMat); 
-  awmMag.position.set(0, -0.04, 0.05);
-
-  // --- スコープチューブ（くり抜き）の生成 ---
-  const scopeOuterPoints = [];
-  for (let i = 0; i <= 12; i++) { const angle = i / 12 * Math.PI * 2; scopeOuterPoints.push(new THREE.Vector2(Math.cos(angle)*0.015, Math.sin(angle)*0.015)); }
-  const scopeShape = new THREE.Shape(scopeOuterPoints);
-  const scopeHolePath = new THREE.Path();
-  const scopeInnerPoints = [];
-  for (let i = 0; i <= 12; i++) { const angle = i / 12 * Math.PI * 2; scopeInnerPoints.push(new THREE.Vector2(Math.cos(angle)*0.013, Math.sin(angle)*0.013)); }
-  scopeHolePath.setFromPoints(scopeInnerPoints);
-  scopeShape.holes.push(scopeHolePath);
-  
-  const awmScopeHousing = new THREE.Mesh(new THREE.ExtrudeGeometry(scopeShape, {depth: 0.18, bevelEnabled: false}), gunAccMat);
-  awmScopeHousing.position.set(0, 0.06, -0.14); // Z軸方向に伸びるため位置を調整
-
-  // --- スコープの柱（マウントリング）2つ ---
-  const mount1 = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.03, 0.01), gunAccMat); mount1.position.set(0, 0.045, -0.1);
-  const mount2 = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.03, 0.01), gunAccMat); mount2.position.set(0, 0.045, -0.02);
-
-  // --- スコープ内部の十字線（レティクル） ---
-  const reticleMat = new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.8});
-  const reticleV = new THREE.Mesh(new THREE.PlaneGeometry(0.001, 0.026), reticleMat);
-  const reticleH = new THREE.Mesh(new THREE.PlaneGeometry(0.026, 0.001), reticleMat);
-  const reticleGroup = new THREE.Group();
-  reticleGroup.add(reticleV, reticleH);
-  reticleGroup.position.set(0, 0.06, 0.03); // チューブ内の画面寄りに配置
-
-  awmGroup.add(awmBody, awmBarrel, awmScopeHousing, mount1, mount2, reticleGroup, awmMag);
-  
-  // ADS位置の調整（巨大化＆スコープの高さ0.06を加味して中心を合わせる）
-  awmGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.4); 
-  awmGroup.adsPos = new THREE.Vector3(0, -0.06 * 1.4, -0.25);
+  const awmBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.008, 0.4), gunMat); awmBarrel.rotation.x = Math.PI/2; awmBarrel.position.set(0, 0.01, -0.35);
+  const awmScope = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.18), gunAccMat); awmScope.rotation.x = Math.PI/2; awmScope.position.set(0, 0.045, -0.05);
+  const awmMag = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.06, 0.04), gunMat); awmMag.position.set(0, -0.04, 0.05);
+  awmGroup.add(awmBody, awmBarrel, awmScope, awmMag);
+  awmGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.4); awmGroup.adsPos = new THREE.Vector3(0, -0.045, -0.2);
 
   // 4. Handgun
   const hgGroup = new THREE.Group();
@@ -730,29 +680,7 @@
           pitch += recoil;
           recoil *= 0.9;
       }
-
-if(!isPlaying) return; requestAnimationFrame(update);
-      
-      // --- 円形クールダウン/リロードUIの更新 ---
-      const ring = document.getElementById('cooldown-ring');
-      const w = weapons[curWepIdx];
-      const nowTime = Date.now();
-      let progress = 0;
-      
-      if (isReloading) {
-          progress = (nowTime - reloadStart) / w.reload;
-          ring.style.display = 'block';
-          ring.style.background = `conic-gradient(rgba(100, 255, 100, 0.8) ${progress * 360}deg, transparent 0deg)`; // 緑色
-      } else if (w.lastF && (nowTime - w.lastF) < w.rate && w.cur > 0 && w.type !== 'melee' && w.type !== 'nade') {
-          progress = (nowTime - w.lastF) / w.rate;
-          ring.style.display = 'block';
-          ring.style.background = `conic-gradient(rgba(255, 100, 100, 0.8) ${progress * 360}deg, transparent 0deg)`; // 赤色
-      } else {
-          ring.style.display = 'none';
-      }
-      // ----------------------------------------
-
-    
+  
       playerRig.rotation.y = yaw;
       camera.rotation.x = pitch;
       if(moveCtrl.id) {
