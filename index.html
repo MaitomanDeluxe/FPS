@@ -263,12 +263,7 @@
             scene.add(new THREE.AmbientLight(0xffffff, 0.1));
         }
     
-  const groundMat = new THREE.MeshStandardMaterial({ 
-      color: gColor, // 昼夜のベースカラーをブレンド
-      map: groundTex, 
-      roughness: 0.9, // リアルな地面の反射を抑える
-      metalness: 0.0 
-  });
+
   // --- 地面の生成（セグメントを100x100に分割して起伏を作る） ---
         const groundGeo = new THREE.PlaneGeometry(500, 500, 100, 100);
         const posAttr = groundGeo.attributes.position;
