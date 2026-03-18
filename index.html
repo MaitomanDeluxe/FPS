@@ -956,6 +956,8 @@ const groundMat = new THREE.MeshStandardMaterial({
       drawMinimap();
       
       renderer.render(scene, camera);
+
+    update(); // ←これないと始まらない
   }
   
   function drawMinimap() {
@@ -980,6 +982,7 @@ const groundMat = new THREE.MeshStandardMaterial({
       ctx.translate(c, c); ctx.rotate(-yaw);
       ctx.fillStyle = '#0f0'; ctx.beginPath(); ctx.moveTo(0,-5); ctx.lineTo(4,4); ctx.lineTo(-4,4); ctx.fill();
       ctx.resetTransform();
+    
   }
   
 /** --- SETUP --- */
