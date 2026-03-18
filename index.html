@@ -799,7 +799,29 @@ const groundMat = new THREE.MeshStandardMaterial({
           }
       }
       
-      if(!isGrounded) { vy -= 0.01; playerRig.position.y += vy; if(playerRig.position.y<=1.7){playerRig.position.y=1.7; vy=0; isGrounded=true;} }
+      // --- 地形に沿ったプレイヤーの高さ制御 ---
+      // プレイヤーの頭上から真下へレイを飛ばし、地面の高さを検知
+      const downRay = new THREE.Raycaster(new THREE.Vector3(playerRig.position.x, playerRig.position.y + 10, playerRig.position.z), new THREE.Vector3(0, -1, 0));
+      // envObjs[0] は先ほど生成した ground
+      const groundHits = downRay.intersectObject(envObjs[0]); 
+      let targetY = 1.7; // デフォルトの高さ
+      
+      if (groundHits.length > 0) {
+          targetY = groundHits[0].point.y + 1.7; // 地面の高さ + プレイヤーの身長(1.7)
+      }
+
+      if(!isGrounded) { 
+          vy -= 0.01; // 重力
+          playerRig.position.y += vy; 
+          if(playerRig.position.y <= targetY) {
+              playerRig.position.y = targetY; 
+              vy = 0; 
+              isGrounded = true;
+          } 
+      } else {
+          // 接地中も坂道に沿ってスムーズに上下する（階段状のガタつきを防ぐlerp）
+          playerRig.position.y += (targetY - playerRig.position.y) * 0.3;
+      }
   
       // フルオート処理（AR, SMG）
       if(isHoldingFire && (weapons[curWepIdx].type === 'ar' || weapons[curWepIdx].type === 'smg')) tryShoot();
@@ -893,6 +915,13 @@ const groundMat = new THREE.MeshStandardMaterial({
   
       const now = Date.now();
       bots.forEach(b => {
+          // ボットの地形追従
+          const botDownRay = new THREE.Raycaster(new THREE.Vector3(b.position.x, b.position.y + 10, b.position.z), new THREE.Vector3(0, -1, 0));
+          const bHits = botDownRay.intersectObject(envObjs[0]);
+          if(bHits.length > 0) {
+              b.position.y = bHits[0].point.y; // ボットを地面の高さにスナップ
+          }
+
           b.lookAt(playerRig.position.x, b.position.y, playerRig.position.z);
           const dist = b.position.distanceTo(playerRig.position);
           if(dist > 15) { b.translateZ(0.04); }
