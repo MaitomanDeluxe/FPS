@@ -379,14 +379,44 @@
       arGroup.idlePos = new THREE.Vector3(0.2, -0.2, -0.4); arGroup.adsPos = new THREE.Vector3(0, -0.125, -0.3);
     
       // 2. MP7 SMG
-      const mp7Group = new THREE.Group();
-      const mp7Body = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.05, 0.18), gunMat);
-      const mp7Mag = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.1, 0.035), gunAccMat); mp7Mag.position.set(0, -0.05, 0.02); mp7Mag.rotation.x = -0.1;
-      const mp7ForeGrip = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.06, 0.02), gunAccMat); mp7ForeGrip.position.set(0, -0.04, -0.06); mp7ForeGrip.rotation.x = 0.1;
-      const mp7Stock = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.1), gunMat); mp7Stock.rotation.x = Math.PI/2; mp7Stock.position.set(0, 0.01, 0.13);
-      const mp7Sight = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.02, 0.02), gunAccMat); mp7Sight.position.set(0, 0.035, -0.05);
-      mp7Group.add(mp7Body, mp7Mag, mp7ForeGrip, mp7Stock, mp7Sight);
-      mp7Group.idlePos = new THREE.Vector3(0.18, -0.18, -0.35); mp7Group.adsPos = new THREE.Vector3(0, -0.035, -0.25);
+    const mp7Group = new THREE.Group();
+    const mp7Body = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.05, 0.18), gunMat);
+    const mp7Mag = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.1, 0.035), gunAccMat);
+    mp7Mag.position.set(0, -0.05, 0.02); mp7Mag.rotation.x = -0.1;
+    const mp7ForeGrip = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.06, 0.02), gunAccMat); mp7ForeGrip.position.set(0, -0.04, -0.06);
+    mp7ForeGrip.rotation.x = 0.1;
+    const mp7Stock = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.1), gunMat); mp7Stock.rotation.x = Math.PI/2; mp7Stock.position.set(0, 0.01, 0.13);
+
+    // --- ここから追加・修正：アイアンサイトとマイクロレッドドットサイト ---
+
+    // アイアンサイト (ADS時に同時に隠すため、Group化して "frontSight" と命名)
+    const mp7IronSights = new THREE.Group();
+    mp7IronSights.name = "frontSight";
+    const mp7FrontSight = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.02, 0.01), gunAccMat);
+    mp7FrontSight.position.set(0, 0.035, -0.08); // 銃身の前方
+    const mp7RearSight = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.02, 0.01), gunAccMat);
+    mp7RearSight.position.set(0, 0.035, 0.06); // 銃身の後方
+    mp7IronSights.add(mp7FrontSight, mp7RearSight);
+
+    // マイクロレッドドットサイト (四角いレンズフレームをExtrudeGeometryでくり抜き成形)
+    const mdShape = new THREE.Shape();
+    mdShape.moveTo(-0.012, 0); mdShape.lineTo(0.012, 0); mdShape.lineTo(0.012, 0.025); mdShape.lineTo(-0.012, 0.025); mdShape.lineTo(-0.012, 0);
+    const mdHole = new THREE.Path();
+    mdHole.moveTo(-0.010, 0.005); mdHole.lineTo(0.010, 0.005); mdHole.lineTo(0.010, 0.023); mdHole.lineTo(-0.010, 0.023); mdHole.lineTo(-0.010, 0.005);
+    mdShape.holes.push(mdHole);
+    const mp7MicroDotFrame = new THREE.Mesh(new THREE.ExtrudeGeometry(mdShape, {depth: 0.015, bevelEnabled: false}), gunAccMat);
+    mp7MicroDotFrame.position.set(0, 0.025, -0.02);
+
+    // レッドドット本体 (赤い光点)
+    const mp7Dot = new THREE.Mesh(new THREE.SphereGeometry(0.0012, 8, 8), new THREE.MeshBasicMaterial({color: 0xff0000}));
+    mp7Dot.position.set(0, 0.038, -0.012); // フレームの中央に配置
+
+    // すべてを銃のグループに追加
+    mp7Group.add(mp7Body, mp7Mag, mp7ForeGrip, mp7Stock, mp7IronSights, mp7MicroDotFrame, mp7Dot);
+    
+    // ADS時のカメラ位置調整 (Y軸をレッドドットの高さ「-0.038」に合わせることで照準がドットの中心に合う)
+    mp7Group.idlePos = new THREE.Vector3(0.18, -0.18, -0.35); 
+    mp7Group.adsPos = new THREE.Vector3(0, -0.038, -0.25);
     
     // --- ここから差し替え ---
       // 3. AWM SNIPER
