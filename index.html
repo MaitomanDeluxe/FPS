@@ -103,17 +103,19 @@
         <span id="enemy-count">10</span>
       </div>
     </div>
-   <div id="crosshair-container">
-      <svg width="40" height="40" id="cooldown-svg" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) rotate(-90deg); pointer-events:none; overflow:visible;">
-          <circle id="cooldown-ring" cx="20" cy="20" r="14" fill="none" stroke="#00ffcc" stroke-width="2" stroke-dasharray="88" stroke-dashoffset="88" style="transition: stroke-dashoffset 0.05s linear;" />
-      </svg>
-
-      <div id="reddot"></div>
-      <div id="ch-top" class="ch"></div>
-      <div id="ch-bottom" class="ch"></div>
-      <div id="ch-left" class="ch"></div>
-      <div id="ch-right" class="ch"></div>
-      <div id="ch-dot"></div>
+    <div id="crosshair-container">
+      <div id="reddot">
+      </div>
+      <div id="ch-top" class="ch">
+      </div>
+      <div id="ch-bottom" class="ch">
+      </div>
+      <div id="ch-left" class="ch">
+      </div>
+      <div id="ch-right" class="ch">
+      </div>
+      <div id="ch-dot">
+      </div>
     </div>
     <div id="hit-marker">
       <div class="hm-line">
@@ -819,40 +821,6 @@
     
       /** --- GAME LOOP --- */
       function update() {
-
-
-
-
-// Crosshair & Cooldown Ring Update
-        const crosshairContainer = document.getElementById('crosshair-container');
-        const ring = document.getElementById('cooldown-ring');
-        
-        // クールダウン進捗の計算
-        const now = Date.now();
-        const shootElapsed = now - lastShoot;
-        const shootRate = weapons[curWepIdx].rate;
-        const progress = Math.min(1, shootElapsed / shootRate);
-        
-        // リングの更新 (半径14の場合、円周 2 * PI * 14 ≒ 88)
-        const circumference = 88;
-        ring.style.strokeDashoffset = circumference * (1 - progress);
-        
-        // 撃てる状態ならリングを消すか薄くし、クールダウン中はハッキリ見せる
-        ring.style.opacity = progress === 1 ? '0' : '0.8';
-
-        if(isADS) {
-            crosshairContainer.style.transform = 'translate(-50%,-50%) scale(0.6)';
-            // ADS時はドットサイトがあるので外枠の線を消す等の処理が既存であれば維持
-        } else {
-            crosshairContainer.style.transform = 'translate(-50%,-50%) scale(1)';
-        }
-
-
-
-
-
-
-        
         if (isADS) {
             crosshair.style.display = "none";
         } else {
