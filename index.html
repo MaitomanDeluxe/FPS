@@ -808,8 +808,16 @@
     
         playerRig.rotation.y = yaw;
         camera.rotation.x = pitch;
+
+        let isDashing = false; // ダッシュ状態のフラグを追加
         if(moveCtrl.id) {
-            const speed = isADS ? 0.08 : 0.15;
+            // ジョイスティックの押し込み距離を計算
+            const stickDist = Math.sqrt(moveCtrl.dx**2 + moveCtrl.dy**2);
+            // ADS中・射撃中・リロード中でなく、ジョイスティックを80%以上押し込んでいればダッシュ
+            isDashing = (!isADS && !isHoldingFire && !isReloading && stickDist > 0.8);
+
+            // ダッシュ時は速度を 0.28 にアップ（通常時は 0.15）
+            const speed = isADS ? 0.08 : (isDashing ? 0.28 : 0.15);
             const mv = new THREE.Vector3(moveCtrl.dx,0,moveCtrl.dy).normalize().multiplyScalar(speed).applyAxisAngle(new THREE.Vector3(0,1,0),yaw);
             const ray = new THREE.Raycaster(playerRig.position.clone().setY(1), mv.clone().normalize(), 0, speed+0.5);
             if(ray.intersectObjects(envObjs).length === 0) {
@@ -843,14 +851,26 @@
             playerRig.position.y += (targetY - playerRig.position.y) * 0.3;
         }
     
-        // フルオート処理（AR, SMG）
+// フルオート処理（AR, SMG）
         if(isHoldingFire && (weapons[curWepIdx].type === 'ar' || weapons[curWepIdx].type === 'smg')) tryShoot();
-        
         cameraFOV.current += (cameraFOV.target - cameraFOV.current)*0.2; camera.fov = cameraFOV.current; camera.updateProjectionMatrix();
         
+        // --- ここから追加：ダッシュ時の画面の揺れ ---
+        if (isDashing && isGrounded) {
+            // 走っている時の激しい揺れ（サイン波でカメラを上下に揺らす）
+            camera.position.y = Math.sin(Date.now() * 0.015) * 0.08;
+        } else {
+            // 通常時の位置にスムーズに戻す
+            camera.position.y += (0 - camera.position.y) * 0.2;
+        }
+        // --- ここまで追加 ---
+
         const grp = weaponGroups[curWepIdx];
         if(isReloading) {
             grp.rotation.x = Math.sin((Date.now()-reloadStart)/weapons[curWepIdx].reload * Math.PI*2)*0.5;
+        } else if (isDashing && weapons[curWepIdx].type !== 'melee' && weapons[curWepIdx].type !== 'nade') {
+            // ダッシュ中は銃口を上に向ける (約57度 = 1.0ラジアン) に徐々に近づける
+            grp.rotation.x += (1.0 - grp.rotation.x) * 0.2;
         } else {
             grp.rotation.x *= 0.8;
             if(weapons[curWepIdx].type === 'melee' && grp.rotation.x < 0) grp.rotation.x += 0.05;
