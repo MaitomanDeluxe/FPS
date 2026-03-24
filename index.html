@@ -1091,7 +1091,7 @@
               enemiesRemaining = ec; totalSpawns = ec;
           }
           document.getElementById('enemy-count').innerText = enemiesRemaining;
-      
+      document.getElementById('howtouse-overlay').style.display = 'flex';
           createWorld(isDay ? 'day' : 'night');
           for(let i=0; i<(isEndless?10:Math.min(10, totalSpawns)); i++) spawnBot();
           if(!isDay) document.getElementById('btn-nvg').style.display = 'block';
