@@ -1076,43 +1076,46 @@
           ctx.resetTransform();
       }
       
-      /** --- SETUP --- */
-      document.getElementById('btn-deploy').onclick = () => {
-        console.log("Deploy button clicked");
-          isDay = document.getElementById('sel-time').value === 'day';
-          const ec = parseInt(document.getElementById('sel-enemies').value);
-          
-          if(ec === 0 || ec === 999) {
-              document.getElementById('btn-exit').style.display = 'block';
-              isEndless = (ec === 999);
-              enemiesRemaining = isEndless ? "∞" : 0;
-              totalSpawns = isEndless ? 999 : 0;
-          } else {
-              enemiesRemaining = ec; totalSpawns = ec;
-          }
-          document.getElementById('enemy-count').innerText = enemiesRemaining;
-      document.getElementById('howtouse-overlay').style.display = 'flex';
-          createWorld(isDay ? 'day' : 'night');
-          for(let i=0; i<(isEndless?10:Math.min(10, totalSpawns)); i++) spawnBot();
-          if(!isDay) document.getElementById('btn-nvg').style.display = 'block';
-          document.getElementById('title-screen').style.display = 'none';
-          document.getElementById('game-hud').style.display = 'block';
-          isPlaying = true; updateHUD(); update();
-      };
+// --- 1. デプロイボタンを押した時の処理を修正 ---
+// 既存の document.getElementById('btn-deploy').onclick = () => { ... } を探し、
+// その中身の最後に以下を追加してください。
+document.getElementById('btn-deploy').addEventListener('click', () => {
+    const overlay = document.getElementById('howtouse-overlay');
+    if (overlay) {
+        overlay.style.display = 'flex'; // デプロイ時に表示
+    }
+});
 
+// --- 2. 閉じるための処理（ここが重要！） ---
+// スクリプトの末尾（ } の外側）に記述します。
+const closeHowToUse = (e) => {
+    // クリックされたのがオーバーレイ自体、またはXボタン、または画像だった場合
+    const overlay = document.getElementById('howtouse-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        // ゲームの操作と被らないようにイベントの伝播を止める
+        if (e) {
+            e.stopPropagation();
+            if (e.cancelable) e.preventDefault();
+        }
+    }
+};
 
-    /** --- HOW TO USE OVERLAY --- */
-      const howToUseOverlay = document.getElementById('howtouse-overlay');
-      
-      function closeHowToUse(e) {
-          // デフォルトの動作（意図しないスクロールなど）を防ぎつつ非表示にする
-          if (e) e.preventDefault();
-          howToUseOverlay.style.display = 'none';
-      }
-
-      // オーバーレイ全体、またはXボタンのどこをタップ・クリックしても閉じる
-      howToUseOverlay.addEventListener('click', closeHowToUse);
-      howToUseOverlay.addEventListener('touchstart', closeHowToUse, { passive: false });
+// ページ読み込み完了後にイベントを登録する
+window.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('howtouse-overlay');
+    if (overlay) {
+        // タップとクリック両方に対応
+        overlay.addEventListener('click', closeHowToUse, true);
+        overlay.addEventListener('touchstart', closeHowToUse, { passive: false });
+        
+        // Xボタン専用（念のため）
+        const closeBtn = document.getElementById('btn-close-howtouse');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeHowToUse);
+        }
+    }
+});
   </script>
 </body>
 
